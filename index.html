@@ -206,19 +206,8 @@ tr:hover td { background:#fafaf8; }
 .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
 
 /* TOUR VALUE EDITOR */
-.tour-editor { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:10px; }
-.te-box {
-  border:1.5px solid var(--border); border-radius:8px; padding:12px 10px;
-  text-align:center;
-}
-.te-box .te-label { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:var(--dark); margin-bottom:6px; }
-.te-box input {
-  width:100%; padding:6px 8px; border:1.5px solid var(--border); border-radius:6px;
-  font-size:14px; font-weight:700; text-align:center; font-family:'DM Sans',sans-serif;
-  outline:none; color:var(--text);
-}
-.te-box input:focus { border-color:var(--accent); }
-.te-box .te-unit { font-size:10px; color:var(--text2); margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+.tour-editor { width:100%; }
+.tour-editor input[type=number]:focus { border-color:var(--accent) !important; box-shadow:0 0 0 2px rgba(233,69,96,0.1); }
 
 /* HOURS REPORT */
 .report-driver { border:1px solid var(--border); border-radius:var(--radius); margin-bottom:12px; overflow:hidden; }
@@ -372,12 +361,14 @@ function defaultData() {
     drivers: ['Ahmed Al-Rashid','Maria Schmidt','Klaus Weber','Fatima Hassan','John Müller'],
     stations: ['NRW','Wuppertal'],
     tours: ['A','B','C','D','E'],
-    tourValues: { A:8, B:7.5, C:6, D:9, E:5 },
+    tourValues: { A:{NRW:8,Wuppertal:6}, B:{NRW:7.5,Wuppertal:5.5}, C:{NRW:6,Wuppertal:5}, D:{NRW:9,Wuppertal:7}, E:{NRW:5,Wuppertal:4} },
     entries: []
   };
 }
 
 let db = loadData();
+// Migrate any old flat tourValues to per-station on startup
+(function(){ db.tours.forEach(t => { const v = db.tourValues[t]; if (typeof v === 'number' || !v) { const flat = typeof v === 'number' ? v : 0; const obj = {}; db.stations.forEach(s => { obj[s] = flat; }); db.tourValues[t] = obj; } else { db.stations.forEach(s => { if (v[s] === undefined) v[s] = 0; }); } }); saveData(); })();
 let currentUser = null;
 let currentRole = null;
 let loginRole = 'user';
@@ -656,7 +647,7 @@ function renderHoursReport() {
         <button class="btn btn-ghost btn-sm" style="align-self:flex-end" onclick="calcReport()">↻ Calculate</button>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-        ${db.tours.map(t=>`<span class="pill pill-${t}">Tour ${t} = ${db.tourValues[t]||0}h</span>`).join('')}
+        ${db.tours.map(t=>`<span class="pill pill-${t}">Tour ${t}: ${db.stations.map(s=>s+' '+getTourHours(t,s)+'h').join(' / ')}</span>`).join('')}
       </div>
     </div>
 
@@ -685,18 +676,17 @@ function calcReport() {
   // Group by driver
   const byDriver = {};
   entries.forEach(e => {
-    if (!byDriver[e.driver]) byDriver[e.driver] = { entries:[], tours:{} };
+    if (!byDriver[e.driver]) byDriver[e.driver] = { entries:[] };
     byDriver[e.driver].entries.push(e);
-    byDriver[e.driver].tours[e.tour] = (byDriver[e.driver].tours[e.tour]||0)+1;
   });
 
-  const driverList = isAdmin ? Object.keys(byDriver) : [currentUser];
+  const driverList = isAdmin ? Object.keys(byDriver) : (byDriver[currentUser] ? [currentUser] : []);
   let totalAllHours = 0;
 
   const out = document.getElementById('reportOutput');
   if (!out) return;
 
-  if (!Object.keys(byDriver).length) {
+  if (!driverList.length) {
     out.innerHTML = `<div class="card" style="text-align:center;padding:32px;color:var(--text2)">No data for selected period.</div>`;
     return;
   }
@@ -705,9 +695,19 @@ function calcReport() {
   driverList.forEach(driver => {
     const data = byDriver[driver];
     if (!data) return;
+    // Calculate total hours using per-station values
     let totalHours = 0;
-    db.tours.forEach(t => { totalHours += (data.tours[t]||0) * (db.tourValues[t]||0); });
+    data.entries.forEach(e => { totalHours += getTourHours(e.tour, e.station); });
     totalAllHours += totalHours;
+
+    // Build tour+station breakdown
+    const breakdown = {};
+    data.entries.forEach(e => {
+      const key = e.tour + '|' + e.station;
+      if (!breakdown[key]) breakdown[key] = { tour:e.tour, station:e.station, count:0, hours:0 };
+      breakdown[key].count++;
+      breakdown[key].hours += getTourHours(e.tour, e.station);
+    });
 
     html += `<div class="report-driver">
       <div class="rd-header" onclick="toggleRd(this)">
@@ -720,22 +720,23 @@ function calcReport() {
       </div>
       <div class="rd-body">
         <div class="tour-breakdown" style="margin-bottom:12px">
-          ${db.tours.filter(t=>data.tours[t]).map(t=>`
-            <div class="tb-chip pill-${t}" style="border-radius:8px;padding:7px 12px">
-              <span style="font-family:'Syne';font-weight:800;font-size:15px">Tour ${t}</span>
-              <span style="opacity:.7">×${data.tours[t]} = <strong>${(data.tours[t])*(db.tourValues[t]||0)}h</strong></span>
+          ${Object.values(breakdown).map(b=>`
+            <div class="tb-chip pill-${b.tour}" style="border-radius:8px;padding:7px 12px">
+              <span style="font-family:'Syne';font-weight:800;font-size:15px">Tour ${b.tour}</span>
+              <span class="pill pill-${b.station==='NRW'?'nrw':'wup'}" style="margin-left:4px;font-size:10px">${b.station}</span>
+              <span style="opacity:.7;margin-left:4px">×${b.count} = <strong>${b.hours}h</strong></span>
             </div>`).join('')}
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>Date</th><th>Tour</th><th>Hours</th><th>Station</th></tr></thead>
+            <thead><tr><th>Date</th><th>Tour</th><th>Station</th><th>Hours</th></tr></thead>
             <tbody>
               ${data.entries.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
                 <tr>
                   <td>${fmtDate(e.date)}</td>
                   <td><span class="pill pill-${e.tour}">Tour ${e.tour}</span></td>
-                  <td style="font-weight:700;color:var(--accent)">${db.tourValues[e.tour]||0}h</td>
                   <td><span class="pill pill-${e.station==='NRW'?'nrw':'wup'}">${e.station}</span></td>
+                  <td style="font-weight:700;color:var(--accent)">${getTourHours(e.tour,e.station)}h</td>
                 </tr>`).join('')}
             </tbody>
           </table>
@@ -800,18 +801,45 @@ function renderToursAdmin() {
 function renderTourEditor() {
   const el = document.getElementById('tourEditor');
   if (!el) return;
-  el.innerHTML = db.tours.map(t=>`
-    <div class="te-box">
-      <div class="te-label">Tour ${t}</div>
-      <input type="number" min="0" step="0.5" value="${db.tourValues[t]||0}" id="tv_${t}" placeholder="0">
-      <div class="te-unit">hours / cycle</div>
-    </div>`).join('');
+  ensureTourValuesPerStation();
+  const stations = db.stations;
+  if (!stations.length || !db.tours.length) {
+    el.innerHTML = '<p style="color:var(--text2);font-size:13px">Add stations and tours first.</p>';
+    return;
+  }
+  // Build table: rows=tours, cols=stations
+  let html = `<div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Tour</th>
+      ${stations.map(s=>`<th style="text-align:center">${s}</th>`).join('')}
+    </tr></thead>
+    <tbody>`;
+  db.tours.forEach(t => {
+    const vals = db.tourValues[t] || {};
+    html += `<tr>
+      <td><span class="pill pill-${t}" style="font-size:13px;padding:4px 12px">Tour ${t}</span></td>
+      ${stations.map(s=>`
+        <td style="text-align:center">
+          <input type="number" min="0" step="0.5"
+            value="${vals[s]!==undefined?vals[s]:0}"
+            id="tv_${t}_${s.replace(/\s/g,'_')}"
+            style="width:80px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-weight:700;text-align:center;font-family:DM Sans,sans-serif;outline:none;color:var(--text)">
+        </td>`).join('')}
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  el.innerHTML = html;
 }
 
 function saveTourValues() {
+  ensureTourValuesPerStation();
   db.tours.forEach(t => {
-    const el = document.getElementById('tv_'+t);
-    if (el) db.tourValues[t] = parseFloat(el.value)||0;
+    if (typeof db.tourValues[t] !== 'object') db.tourValues[t] = {};
+    db.stations.forEach(s => {
+      const key = 'tv_' + t + '_' + s.replace(/\s/g,'_');
+      const el = document.getElementById(key);
+      if (el) db.tourValues[t][s] = parseFloat(el.value)||0;
+    });
   });
   saveData();
   const a = document.getElementById('tvAlert');
@@ -823,12 +851,14 @@ function renderTourList() {
   const el = document.getElementById('tourList');
   if (!el) return;
   if (!db.tours.length) { el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px">No tours defined.</div>`; return; }
-  el.innerHTML = db.tours.map(t=>`
-    <div class="li-row">
+  el.innerHTML = db.tours.map(t=>{
+    const vals = db.tourValues[t]||{};
+    const summary = db.stations.map(s=>`${s}: ${typeof vals==='object'?vals[s]||0:vals||0}h`).join(' · ');
+    return `<div class="li-row">
       <span class="li-name"><span class="pill pill-${t}">Tour ${t}</span></span>
-      <span style="font-size:12px;color:var(--text2)">${db.tourValues[t]||0}h</span>
+      <span style="font-size:12px;color:var(--text2)">${summary}</span>
       <button class="btn btn-danger btn-xs" onclick="confirmDelete('${t}','tour')">🗑 Remove</button>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 function addTour() {
@@ -836,7 +866,11 @@ function addTour() {
   if (!val) return;
   if (db.tours.includes(val)) { alert('Tour already exists'); return; }
   db.tours.push(val);
-  if (!db.tourValues[val]) db.tourValues[val] = 0;
+  if (!db.tourValues[val] || typeof db.tourValues[val] !== 'object') {
+    const obj = {};
+    db.stations.forEach(s => { obj[s] = 0; });
+    db.tourValues[val] = obj;
+  }
   saveData();
   document.getElementById('newTourInput').value = '';
   renderTourEditor(); renderTourList();
@@ -877,6 +911,11 @@ function addStation() {
   if (!val) return;
   if (db.stations.includes(val)) { alert('Station already exists'); return; }
   db.stations.push(val);
+  // Add new station to all tour values
+  db.tours.forEach(t => {
+    if (typeof db.tourValues[t] !== 'object') db.tourValues[t] = {};
+    if (db.tourValues[t][val] === undefined) db.tourValues[t][val] = 0;
+  });
   saveData();
   document.getElementById('newStationInput').value = '';
   renderStationList();
@@ -942,7 +981,7 @@ function openEntryModal(entryId) {
 
   // Tour
   const tSel = document.getElementById('eTour');
-  tSel.innerHTML = db.tours.map(t=>`<option value="${t}" ${existing&&existing.tour===t?'selected':''}>${t} (${db.tourValues[t]||0}h)</option>`).join('');
+  tSel.innerHTML = db.tours.map(t=>`<option value="${t}" ${existing&&existing.tour===t?'selected':''}>${t}</option>`).join('');
 
   // Station
   const sSel = document.getElementById('eStation');
@@ -1017,7 +1056,7 @@ function exportExcel() {
 
   // Entries sheet
   const rows = [['Date','Driver','Tour','Hours','Station']];
-  entries.forEach(e => rows.push([e.date, e.driver, 'Tour '+e.tour, db.tourValues[e.tour]||0, e.station]));
+  entries.forEach(e => rows.push([e.date, e.driver, 'Tour '+e.tour, getTourHours(e.tour,e.station), e.station]));
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!cols'] = [{wch:12},{wch:22},{wch:10},{wch:10},{wch:14}];
   XLSX.utils.book_append_sheet(wb, ws, 'Entries');
@@ -1027,7 +1066,7 @@ function exportExcel() {
   entries.forEach(e => {
     if (!byDriver[e.driver]) byDriver[e.driver] = { tours:{}, total:0 };
     byDriver[e.driver].tours[e.tour] = (byDriver[e.driver].tours[e.tour]||0)+1;
-    byDriver[e.driver].total += db.tourValues[e.tour]||0;
+    byDriver[e.driver].total += getTourHours(e.tour,e.station);
   });
 
   const sumRows = [['Driver', ...db.tours.map(t=>`Tour ${t} (×count)`), 'Total Hours']];
@@ -1048,6 +1087,28 @@ function exportExcel() {
 // ============================================================
 // UTILS
 // ============================================================
+function getTourHours(tour, station) {
+  const v = db.tourValues[tour];
+  if (!v) return 0;
+  if (typeof v === 'object') return v[station] !== undefined ? v[station] : 0;
+  return v;
+}
+
+function ensureTourValuesPerStation() {
+  db.tours.forEach(t => {
+    const v = db.tourValues[t];
+    if (typeof v === 'number' || !v) {
+      const flat = typeof v === 'number' ? v : 0;
+      const obj = {};
+      db.stations.forEach(s => { obj[s] = flat; });
+      db.tourValues[t] = obj;
+    } else {
+      // Ensure all current stations exist
+      db.stations.forEach(s => { if (v[s] === undefined) v[s] = 0; });
+    }
+  });
+}
+
 function fmtDate(d) {
   if (!d) return '—';
   const dt = new Date(d+'T00:00:00');
