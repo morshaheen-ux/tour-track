@@ -173,9 +173,13 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
       <button class="role-btn active" onclick="setRole('user')" id="rl-user">👤 Driver Portal</button>
       <button class="role-btn" onclick="setRole('admin')" id="rl-admin">⚙️ Admin Portal</button>
     </div>
-    <div class="fi">
+    <div class="fi" id="nameSelectGroup">
       <label>Your Name</label>
       <select id="loginName"><option value="">— Select your name —</option></select>
+    </div>
+    <div class="fi" id="nameInputGroup" style="display:none">
+      <label>Admin Name</label>
+      <input type="text" id="loginNameInput" placeholder="Enter your name" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="fi" id="passGroup" style="display:none">
       <label>Admin Password</label>
@@ -294,15 +298,15 @@ function setRole(r) {
   document.getElementById('rl-user').classList.toggle('active', r==='user');
   document.getElementById('rl-admin').classList.toggle('active', r==='admin');
   document.getElementById('passGroup').style.display = r==='admin' ? '' : 'none';
-  const sel = document.getElementById('loginName');
-  if (r === 'admin') {
-    sel.innerHTML = '<option value="">— Select your name —</option>' +
-      drivers.map(d=>`<option>${d}</option>`).join('');
-  }
+  document.getElementById('nameSelectGroup').style.display = r==='user' ? '' : 'none';
+  document.getElementById('nameInputGroup').style.display = r==='admin' ? '' : 'none';
+  if (r==='admin') setTimeout(()=>document.getElementById('loginNameInput').focus(), 50);
 }
 
 async function doLogin() {
-  const name = document.getElementById('loginName').value.trim();
+  const name = loginRole==='admin' 
+    ? document.getElementById('loginNameInput').value.trim()
+    : document.getElementById('loginName').value.trim();
   const pass = document.getElementById('loginPass').value;
   const alertEl = document.getElementById('loginAlert');
   alertEl.style.display = 'none';
@@ -337,6 +341,7 @@ function logout() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('loginPass').value = '';
+  document.getElementById('loginNameInput').value = '';
   document.getElementById('loginAlert').style.display = 'none';
   setRole('user');
   populateLoginDropdown();
