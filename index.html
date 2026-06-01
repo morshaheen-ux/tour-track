@@ -173,12 +173,8 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
       <button class="role-btn active" onclick="setRole('user')" id="rl-user">👤 Driver Portal</button>
       <button class="role-btn" onclick="setRole('admin')" id="rl-admin">⚙️ Admin Portal</button>
     </div>
-    <div class="fi" id="nameSelectGroup">
-      <label>Your Name</label>
-      <select id="loginName"><option value="">— Select your name —</option></select>
-    </div>
-    <div class="fi" id="nameInputGroup" style="display:none">
-      <label>Admin Name</label>
+    <div class="fi">
+      <label id="nameLabel">Your Name</label>
       <input type="text" id="loginNameInput" placeholder="Enter your name" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="fi" id="passGroup" style="display:none">
@@ -267,10 +263,9 @@ let adminPassword = 'admin2024';
 async function startup() {
   setLoaderMsg('Connecting to database…');
   try {
-    const { data, error } = await sb.from('drivers').select('name').order('name');
+    // Just test connection then show login
+    const { error } = await sb.from('settings').select('key').limit(1);
     if (error) throw error;
-    drivers = data.map(d => d.name);
-    populateLoginDropdown();
     hideLoader();
   } catch(e) {
     setLoaderMsg('⚠️ Cannot connect. Check your internet connection.');
@@ -285,9 +280,7 @@ function hideLoader() {
 }
 
 function populateLoginDropdown() {
-  const sel = document.getElementById('loginName');
-  sel.innerHTML = '<option value="">— Select your name —</option>' +
-    drivers.map(d => `<option value="${d}">${d}</option>`).join('');
+  // Driver now types name freely - no dropdown needed
 }
 
 // ============================================================
@@ -298,27 +291,30 @@ function setRole(r) {
   document.getElementById('rl-user').classList.toggle('active', r==='user');
   document.getElementById('rl-admin').classList.toggle('active', r==='admin');
   document.getElementById('passGroup').style.display = r==='admin' ? '' : 'none';
-  document.getElementById('nameSelectGroup').style.display = r==='user' ? '' : 'none';
-  document.getElementById('nameInputGroup').style.display = r==='admin' ? '' : 'none';
-  if (r==='admin') setTimeout(()=>document.getElementById('loginNameInput').focus(), 50);
+  document.getElementById('nameLabel').textContent = r==='admin' ? 'Admin Username' : 'Your Name';
+  document.getElementById('loginNameInput').placeholder = r==='admin' ? 'Enter admin username' : 'Enter your full name';
+  setTimeout(()=>document.getElementById('loginNameInput').focus(), 50);
 }
 
 async function doLogin() {
-  const name = loginRole==='admin' 
-    ? document.getElementById('loginNameInput').value.trim()
-    : document.getElementById('loginName').value.trim();
+  const name = document.getElementById('loginNameInput').value.trim();
   const pass = document.getElementById('loginPass').value;
   const alertEl = document.getElementById('loginAlert');
   alertEl.style.display = 'none';
   if (!name) { document.getElementById('loginName').focus(); return; }
 
   if (loginRole === 'admin') {
-    // Fetch password from Supabase
-    const { data } = await sb.from('settings').select('value').eq('key','admin_password').single();
-    const storedPass = data?.value || 'admin2024';
+    // Fetch credentials from Supabase
+    const { data: settings } = await sb.from('settings').select('*');
+    const storedPass = settings?.find(r=>r.key==='admin_password')?.value || 'admin2024';
+    const storedUser = settings?.find(r=>r.key==='admin_username')?.value || 'admin';
     if (pass !== storedPass) {
       alertEl.style.display = 'flex'; alertEl.className = 'alert alert-red show';
       alertEl.textContent = '✗ Incorrect password.'; return;
+    }
+    if (name.toLowerCase() !== storedUser.toLowerCase()) {
+      alertEl.style.display = 'flex'; alertEl.className = 'alert alert-red show';
+      alertEl.textContent = '✗ Incorrect username.'; return;
     }
     currentRole = 'admin';
   } else {
@@ -344,7 +340,6 @@ function logout() {
   document.getElementById('loginNameInput').value = '';
   document.getElementById('loginAlert').style.display = 'none';
   setRole('user');
-  populateLoginDropdown();
 }
 
 // ============================================================
@@ -899,10 +894,33 @@ async function addDriver() {
 function renderSettingsAdmin() {
   const c = document.getElementById('appContent');
   c.innerHTML = `
-    <div class="ph"><div><div class="ph-title">🔐 Settings</div><div class="ph-sub">Manage admin password</div></div></div>
+    <div class="ph"><div><div class="ph-title">🔐 Settings</div><div class="ph-sub">Manage admin credentials</div></div></div>
+
     <div class="card" style="max-width:460px">
+      <div class="card-title">👤 Change Admin Username</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:18px">Update the admin username used to log in.</p>
+      <div class="fg">
+        <label>Current Username</label>
+        <input type="text" id="unCurrent" value="${currentUser}" readonly style="background:#f8f8f8">
+      </div>
+      <div class="fg">
+        <label>New Username</label>
+        <input type="text" id="unNew" placeholder="Enter new username" onkeydown="if(event.key==='Enter')changeUsername()">
+      </div>
+      <div class="fg">
+        <label>Confirm with Password</label>
+        <input type="password" id="unPass" placeholder="Enter current password" onkeydown="if(event.key==='Enter')changeUsername()">
+      </div>
+      <div class="alert alert-green" id="unOk"></div>
+      <div class="alert alert-red"   id="unErr"></div>
+      <button class="btn btn-primary" id="unBtn" onclick="changeUsername()" style="width:100%;justify-content:center;margin-bottom:0">
+        👤 Update Username
+      </button>
+    </div>
+
+    <div class="card" style="max-width:460px;margin-top:0">
       <div class="card-title">🔑 Change Admin Password</div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:18px">The new password will be saved to the database and required on all devices.</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:18px">The new password will be saved to the database and work on all devices immediately.</p>
       <div class="fg">
         <label>Current Password</label>
         <input type="password" id="cpCurrent" placeholder="Enter current password">
@@ -920,17 +938,35 @@ function renderSettingsAdmin() {
       <button class="btn btn-primary" id="cpBtn" onclick="changePassword()" style="width:100%;justify-content:center">
         🔒 Update Password
       </button>
-    </div>
-    <div class="card" style="max-width:460px;margin-top:0">
-      <div class="card-title">ℹ️ Signed in as</div>
-      <div style="display:flex;align-items:center;gap:12px;padding:8px 0">
-        <div style="width:42px;height:42px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Syne';font-weight:800;font-size:18px">${currentUser.charAt(0).toUpperCase()}</div>
-        <div>
-          <div style="font-weight:700;font-size:14px">${currentUser}</div>
-          <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Administrator</div>
-        </div>
-      </div>
     </div>`;
+}
+
+async function changeUsername() {
+  const newUser = document.getElementById('unNew').value.trim();
+  const pass    = document.getElementById('unPass').value;
+  document.getElementById('unOk').classList.remove('show');
+  document.getElementById('unErr').classList.remove('show');
+
+  if (!newUser) { showAlert('unErr','✗ Please enter a new username.','red'); return; }
+
+  // Verify password
+  const { data } = await sb.from('settings').select('value').eq('key','admin_password').single();
+  const stored = data?.value || 'admin2024';
+  if (pass !== stored) { showAlert('unErr','✗ Incorrect password.','red'); return; }
+
+  const btn = document.getElementById('unBtn');
+  btn.disabled=true; btn.textContent='⏳ Saving…';
+
+  const { error } = await sb.from('settings').upsert({ key:'admin_username', value:newUser }, { onConflict:'key' });
+  if (error) { showAlert('unErr','✗ Error: '+error.message,'red'); btn.disabled=false; btn.textContent='👤 Update Username'; return; }
+
+  currentUser = newUser;
+  document.getElementById('topbarName').textContent = currentUser;
+  document.getElementById('unCurrent').value = currentUser;
+  document.getElementById('unNew').value = '';
+  document.getElementById('unPass').value = '';
+  showAlert('unOk','✓ Username updated successfully!','green');
+  btn.disabled=false; btn.textContent='👤 Update Username';
 }
 
 async function changePassword() {
@@ -972,8 +1008,16 @@ function openEntryModal(entryId) {
   document.getElementById('entryAlert').classList.remove('show');
 
   const dSel = document.getElementById('eDriver');
-  dSel.innerHTML = drivers.map(d=>`<option value="${d}" ${existing?.driver===d?'selected':''}>${d}</option>`).join('');
-  if (!existing && currentRole==='user') dSel.value = currentUser;
+  if (currentRole === 'admin') {
+    // Admin sees a select with all drivers
+    const opts = drivers.length
+      ? drivers.map(d=>`<option value="${d}" ${existing?.driver===d?'selected':''}>${d}</option>`).join('')
+      : `<option value="${existing?.driver||''}">${existing?.driver||''}</option>`;
+    dSel.outerHTML = `<select id="eDriver" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none">${opts}</select>`;
+  } else {
+    // Driver sees their own name pre-filled, read-only
+    dSel.outerHTML = `<input type="text" id="eDriver" value="${existing?.driver||currentUser}" readonly style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#f8f8f8;outline:none">`;
+  }
 
   document.getElementById('eDate').value = existing?.date || new Date().toISOString().split('T')[0];
 
