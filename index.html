@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TourTrack</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -286,21 +289,6 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
 </div>
 
 <script>
-const SUPABASE_URL = 'https://clvzwiykjqrpnhgaywlr.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdnp3aXlranFycG5oZ2F5d2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQzMjksImV4cCI6MjA5NDc3MDMyOX0.T7p4RTZAzW3_dUVPSOrzTLz-My_9a1lQZRgNEkliR_A';
-const sb = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// STATE
-let session = { role:null, user:null, adminId:null };
-let loginRole = 'driver';
-let cache = { drivers:[], stations:[], tours:[], tourValues:{}, entries:[], admins:[] };
-let editingEntryId = null;
-let currentPage = '';
-
-
-// ============================================================
-// TRANSLATIONS
-// ============================================================
 let lang = localStorage.getItem('lang') || 'en';
 
 const T = {
@@ -423,9 +411,9 @@ const T = {
     deleteDriver: 'Remove driver',
     deleteAdmin: 'Delete this admin account and ALL their data?',
     // Workspace
-    selectWorkspace: 'selectWorkspace',
-    adminCompany: 'adminCompany',
-    selectWorkspacePlaceholder: 'selectWorkspacePlaceholder',
+    selectWorkspace: '🏢 Workspace auswählen',
+    adminCompany: 'Admin / Unternehmen',
+    selectWorkspacePlaceholder: '— Workspace auswählen —',
     // Errors
     fillFields: 'Fill in all fields.',
     incorrectPass: '✗ Incorrect password.',
@@ -644,6 +632,23 @@ function updateLoginTexts() {
   const passLabel = document.querySelector('#passGroup label');
   if (passLabel) passLabel.textContent = t('password');
 }
+
+const SUPABASE_URL = 'https://clvzwiykjqrpnhgaywlr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdnp3aXlranFycG5oZ2F5d2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQzMjksImV4cCI6MjA5NDc3MDMyOX0.T7p4RTZAzW3_dUVPSOrzTLz-My_9a1lQZRgNEkliR_A';
+const sb = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// STATE
+let session = { role:null, user:null, adminId:null };
+let loginRole = 'driver';
+let cache = { drivers:[], stations:[], tours:[], tourValues:{}, entries:[], admins:[] };
+let editingEntryId = null;
+let currentPage = '';
+
+
+// ============================================================
+// TRANSLATIONS
+// ============================================================
+
 
 // ============================================================
 // STARTUP
