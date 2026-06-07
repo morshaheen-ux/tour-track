@@ -3,15 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tour Hours Tracker</title>
+<title>TourTrack</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
-:root {
-  --bg:#f5f4f0;--white:#fff;--dark:#1a1a2e;--accent:#e94560;--green:#06d6a0;
-  --border:#e0ddd6;--text:#2d2d2d;--text2:#888;--radius:10px;--shadow:0 2px 16px rgba(0,0,0,.07);
-}
+:root{--bg:#f5f4f0;--white:#fff;--dark:#1a1a2e;--accent:#e94560;--green:#06d6a0;--blue:#3b82f6;--border:#e0ddd6;--text:#2d2d2d;--text2:#888;--radius:10px;--shadow:0 2px 16px rgba(0,0,0,.07);}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
@@ -24,29 +21,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .loader-msg{font-size:13px;color:rgba(255,255,255,.45);}
 
 /* LOGIN */
-#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--dark);background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.02) 40px,rgba(255,255,255,.02) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.02) 40px,rgba(255,255,255,.02) 41px);}
-.login-box{background:#fff;border-radius:16px;padding:40px 36px;width:380px;box-shadow:0 32px 80px rgba(0,0,0,.4);}
+#loginScreen{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--dark);background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.02) 40px,rgba(255,255,255,.02) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.02) 40px,rgba(255,255,255,.02) 41px);}
+.login-box{background:#fff;border-radius:16px;padding:40px 36px;width:400px;max-width:95vw;box-shadow:0 32px 80px rgba(0,0,0,.4);}
 .login-logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--dark);margin-bottom:4px;}
 .login-logo span{color:var(--accent);}
-.login-sub{font-size:12px;color:var(--text2);margin-bottom:28px;letter-spacing:.5px;text-transform:uppercase;}
-.login-roles{display:flex;gap:8px;margin-bottom:20px;}
-.role-btn{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:transparent;color:var(--text2);}
+.login-sub{font-size:12px;color:var(--text2);margin-bottom:24px;letter-spacing:.5px;text-transform:uppercase;}
+.login-roles{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.role-btn{flex:1;padding:10px 8px;border-radius:8px;border:1.5px solid var(--border);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;background:transparent;color:var(--text2);white-space:nowrap;}
 .role-btn.active{border-color:var(--accent);background:#fff0f3;color:var(--accent);}
+.role-btn.super{border-color:var(--blue);}.role-btn.super.active{background:#eff6ff;color:var(--blue);border-color:var(--blue);}
 .fi{margin-bottom:14px;}
 .fi label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:5px;}
 .fi input,.fi select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .2s;}
 .fi input:focus,.fi select:focus{border-color:var(--accent);}
 .btn-login{width:100%;padding:12px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px;}
 .btn-login:hover{background:var(--accent);}
-.login-hint{font-size:11px;color:var(--text2);text-align:center;margin-top:12px;}
 
 /* TOPBAR */
 #mainApp{display:none;min-height:100vh;}
-.topbar{background:var(--dark);height:56px;display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.25);}
+.topbar{background:var(--dark);height:56px;display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.25);}
 .topbar-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;}
 .topbar-logo span{color:var(--accent);}
-.topbar-user{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.55);}
-.topbar-user strong{color:#fff;font-size:13px;}
+.topbar-info{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.55);}
+.topbar-info strong{color:#fff;font-size:13px;}
+.role-tag{padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.role-tag.admin{background:rgba(233,69,96,.25);color:#ff8099;}
+.role-tag.driver{background:rgba(6,214,160,.2);color:#06d6a0;}
+.role-tag.super{background:rgba(59,130,246,.25);color:#93c5fd;}
 .btn-signout{padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
 .btn-signout:hover{background:rgba(255,255,255,.08);color:#fff;}
 
@@ -70,8 +71,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
 .btn-primary{background:var(--dark);color:#fff;}.btn-primary:hover{background:var(--accent);}
-.btn-accent{background:var(--accent);color:#fff;}.btn-accent:hover{background:#c73652;}
-.btn-green{background:#06d6a0;color:#fff;}.btn-green:hover{background:#05b888;}
+.btn-green{background:var(--green);color:#fff;}.btn-green:hover{background:#05b888;}
+.btn-blue{background:var(--blue);color:#fff;}.btn-blue:hover{background:#2563eb;}
 .btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text);}.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
 .btn-danger{background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;}.btn-danger:hover{background:#dc2626;color:#fff;}
 .btn-sm{padding:5px 11px;font-size:11px;}.btn-xs{padding:3px 8px;font-size:10px;}
@@ -81,8 +82,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .form-row{display:flex;gap:12px;flex-wrap:wrap;}.form-row .fg{flex:1;min-width:140px;}
 .fg{margin-bottom:14px;}
 .fg label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:5px;}
-.fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .2s;}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent);}
+.fg input,.fg select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--accent);}
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
@@ -108,7 +109,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
 /* MODAL */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);z-index:200;align-items:center;justify-content:center;}
 .modal-bg.open{display:flex;}
-.modal{background:#fff;border-radius:14px;padding:28px;width:460px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:mIn .18s ease;}
+.modal{background:#fff;border-radius:14px;padding:28px;width:480px;max-width:94vw;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:mIn .18s ease;max-height:90vh;overflow-y:auto;}
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
 .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:18px;color:var(--dark);}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
@@ -129,26 +130,30 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
 .rd-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;}
 .rd-body{padding:12px 16px;display:none;}
 .rd-body.open{display:block;}
-.tour-breakdown{display:flex;gap:8px;flex-wrap:wrap;}
+.tour-breakdown{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
 .tb-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;}
-.month-total-box{background:var(--dark);color:#fff;border-radius:var(--radius);padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
-.mt-label{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.5);margin-bottom:4px;}
+.month-total-box{background:var(--dark);color:#fff;border-radius:var(--radius);padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-top:20px;}
 .mt-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#fff;}
+.mt-label{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.5);margin-bottom:4px;}
 .mt-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
 
 /* FILTER BAR */
 .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px;}
 .filter-bar .fg{margin-bottom:0;}
 
-/* TOUR TABLE */
-.tour-editor{width:100%;}
-.tour-editor input[type=number]:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2px rgba(233,69,96,.1);}
-
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px;}
 .stat-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
 .stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--dark);}
 .stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);font-weight:600;margin-top:2px;}
+
+/* ADMIN CARD */
+.admin-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.admin-avatar{width:44px;height:44px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;flex-shrink:0;}
+.admin-info{flex:1;}
+.admin-name{font-weight:700;font-size:14px;color:var(--dark);}
+.admin-company{font-size:11px;color:var(--text2);}
+.admin-meta{font-size:11px;color:var(--text2);margin-top:2px;}
 
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -157,43 +162,45 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
 </head>
 <body>
 
-<!-- GLOBAL LOADER -->
 <div id="globalLoader">
   <div class="loader-logo">Tour<span>Track</span></div>
   <div class="spinner"></div>
-  <div class="loader-msg" id="loaderMsg">Connecting to database…</div>
+  <div class="loader-msg" id="loaderMsg">Connecting…</div>
 </div>
 
-<!-- LOGIN -->
-<div id="loginScreen" style="display:none">
+<div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">Tour<span>Track</span></div>
     <div class="login-sub">Driver Hours Management</div>
     <div class="login-roles">
-      <button class="role-btn active" onclick="setRole('user')" id="rl-user">👤 Driver Portal</button>
-      <button class="role-btn" onclick="setRole('admin')" id="rl-admin">⚙️ Admin Portal</button>
+      <button class="role-btn active" onclick="setLoginRole('driver')" id="rl-driver">🚛 Driver</button>
+      <button class="role-btn" onclick="setLoginRole('admin')" id="rl-admin">⚙️ Admin</button>
+      <button class="role-btn super" onclick="setLoginRole('super')" id="rl-super">🔑 Super Admin</button>
     </div>
-    <div class="fi">
-      <label id="nameLabel">Your Name</label>
-      <input type="text" id="loginNameInput" placeholder="Enter your name" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="fi" id="driverNameGroup">
+      <label>Your Name</label>
+      <input type="text" id="loginDriverName" placeholder="Enter your full name" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="fi" id="adminUserGroup" style="display:none">
+      <label>Username</label>
+      <input type="text" id="loginUsername" placeholder="Admin username" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="fi" id="passGroup" style="display:none">
-      <label>Admin Password</label>
+      <label id="passLabel">Password</label>
       <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <div class="alert alert-red" id="loginAlert" style="display:none">Incorrect password.</div>
-    <button class="btn-login" onclick="doLogin()">Sign In →</button>
+    <div class="alert alert-red" id="loginAlert" style="margin-bottom:12px"></div>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In →</button>
+    <div style="margin-top:12px;font-size:11px;color:var(--text2);text-align:center" id="loginHint">Super Admin password: <strong>super2024</strong></div>
   </div>
 </div>
 
-<!-- MAIN APP -->
 <div id="mainApp">
   <div class="topbar">
     <div class="topbar-logo">Tour<span>Track</span></div>
-    <div class="topbar-user">
-      Signed in as &nbsp;<strong id="topbarName">—</strong>
-      &nbsp;·&nbsp;
-      <span id="topbarRole" style="color:var(--accent);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px"></span>
+    <div class="topbar-info">
+      <strong id="topbarName">—</strong>
+      <span class="role-tag" id="topbarRole"></span>
     </div>
     <button class="btn-signout" onclick="logout()">Sign Out</button>
   </div>
@@ -206,7 +213,9 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
   <div class="modal">
     <div class="modal-title" id="entryModalTitle">Add Entry</div>
     <div class="form-row">
-      <div class="fg"><label>Driver</label><select id="eDriver"></select></div>
+      <div class="fg"><label>Driver</label>
+        <input type="text" id="eDriver" placeholder="Driver name">
+      </div>
       <div class="fg"><label>Date</label><input type="date" id="eDate"></div>
     </div>
     <div class="form-row">
@@ -217,6 +226,39 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('entryModal')">Cancel</button>
       <button class="btn btn-primary" id="entrySaveBtn" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE ADMIN MODAL -->
+<div class="modal-bg" id="createAdminModal">
+  <div class="modal">
+    <div class="modal-title">➕ Create Admin Account</div>
+    <div class="fg"><label>Username</label><input type="text" id="caUsername" placeholder="e.g. john_admin"></div>
+    <div class="fg"><label>Password</label><input type="password" id="caPassword" placeholder="Min 4 characters"></div>
+    <div class="fg"><label>Company / Name</label><input type="text" id="caCompany" placeholder="e.g. Careon24 NRW"></div>
+    <div class="alert alert-red" id="caErr"></div>
+    <div class="alert alert-green" id="caOk"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('createAdminModal')">Cancel</button>
+      <button class="btn btn-blue" id="caBtn" onclick="createAdmin()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ADMIN MODAL -->
+<div class="modal-bg" id="editAdminModal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Admin Account</div>
+    <input type="hidden" id="eaId">
+    <div class="fg"><label>Username</label><input type="text" id="eaUsername" placeholder="Username"></div>
+    <div class="fg"><label>New Password <span style="font-weight:400;text-transform:none;color:var(--text2)">(leave blank to keep current)</span></label><input type="password" id="eaPassword" placeholder="New password"></div>
+    <div class="fg"><label>Company / Name</label><input type="text" id="eaCompany" placeholder="Company name"></div>
+    <div class="alert alert-red" id="eaErr"></div>
+    <div class="alert alert-green" id="eaOk"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('editAdminModal')">Cancel</button>
+      <button class="btn btn-primary" id="eaBtn" onclick="updateAdmin()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -234,337 +276,463 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
 </div>
 
 <script>
-// ============================================================
-// SUPABASE INIT
-// ============================================================
 const SUPABASE_URL = 'https://clvzwiykjqrpnhgaywlr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdnp3aXlranFycG5oZ2F5d2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQzMjksImV4cCI6MjA5NDc3MDMyOX0.T7p4RTZAzW3_dUVPSOrzTLz-My_9a1lQZRgNEkliR_A';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ============================================================
 // STATE
-// ============================================================
-let currentUser = null;
-let currentRole = null;
-let loginRole   = 'user';
+let session = { role:null, user:null, adminId:null };
+let loginRole = 'driver';
+let cache = { drivers:[], stations:[], tours:[], tourValues:{}, entries:[], admins:[] };
 let editingEntryId = null;
-
-// In-memory cache (loaded from Supabase on login)
-let drivers    = [];
-let stations   = [];
-let tours      = [];
-let tourValues = {}; // { 'A': { 'NRW': 8, 'Wuppertal': 6 } }
-let entries    = [];
-let adminPassword = 'admin2024';
+let currentPage = '';
 
 // ============================================================
-// STARTUP — load drivers for login dropdown
+// STARTUP
 // ============================================================
 async function startup() {
-  setLoaderMsg('Connecting to database…');
   try {
-    // Just test connection then show login
     const { error } = await sb.from('settings').select('key').limit(1);
     if (error) throw error;
-    hideLoader();
+    document.getElementById('globalLoader').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
   } catch(e) {
-    setLoaderMsg('⚠️ Cannot connect. Check your internet connection.');
-    console.error(e);
+    document.getElementById('loaderMsg').textContent = '⚠️ Cannot connect. Check internet.';
   }
-}
-
-function setLoaderMsg(m) { document.getElementById('loaderMsg').textContent = m; }
-function hideLoader() {
-  document.getElementById('globalLoader').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'flex';
-}
-
-function populateLoginDropdown() {
-  // Driver now types name freely - no dropdown needed
 }
 
 // ============================================================
 // LOGIN
 // ============================================================
-function setRole(r) {
+function setLoginRole(r) {
   loginRole = r;
-  document.getElementById('rl-user').classList.toggle('active', r==='user');
-  document.getElementById('rl-admin').classList.toggle('active', r==='admin');
-  document.getElementById('passGroup').style.display = r==='admin' ? '' : 'none';
-  document.getElementById('nameLabel').textContent = r==='admin' ? 'Admin Username' : 'Your Name';
-  document.getElementById('loginNameInput').placeholder = r==='admin' ? 'Enter admin username' : 'Enter your full name';
-  setTimeout(()=>document.getElementById('loginNameInput').focus(), 50);
+  ['driver','admin','super'].forEach(x => {
+    document.getElementById('rl-'+x).classList.toggle('active', x===r);
+  });
+  document.getElementById('driverNameGroup').style.display = r==='driver' ? '' : 'none';
+  document.getElementById('adminUserGroup').style.display  = r!=='driver' ? '' : 'none';
+  document.getElementById('passGroup').style.display       = r!=='driver' ? '' : 'none';
+  document.getElementById('loginHint').style.display       = r==='super' ? '' : 'none';
+  document.getElementById('loginAlert').style.display = 'none';
+  if (r==='driver') setTimeout(()=>document.getElementById('loginDriverName').focus(),50);
+  else setTimeout(()=>document.getElementById('loginUsername').focus(),50);
 }
 
 async function doLogin() {
-  const name = document.getElementById('loginNameInput').value.trim();
-  const pass = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
   const alertEl = document.getElementById('loginAlert');
   alertEl.style.display = 'none';
-  if (!name) { document.getElementById('loginName').focus(); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
 
-  if (loginRole === 'admin') {
-    // Fetch credentials from Supabase
-    const { data: settings } = await sb.from('settings').select('*');
-    const storedPass = settings?.find(r=>r.key==='admin_password')?.value || 'admin2024';
-    const storedUser = settings?.find(r=>r.key==='admin_username')?.value || 'admin';
-    if (pass !== storedPass) {
-      alertEl.style.display = 'flex'; alertEl.className = 'alert alert-red show';
-      alertEl.textContent = '✗ Incorrect password.'; return;
+  try {
+    if (loginRole === 'driver') {
+      const name = document.getElementById('loginDriverName').value.trim();
+      if (!name) { showLoginErr('Enter your name.'); return; }
+      session = { role:'driver', user:name, adminId:null };
+      enterApp();
+
+    } else if (loginRole === 'super') {
+      const user = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      if (!user || !pass) { showLoginErr('Enter username and password.'); return; }
+      const { data } = await sb.from('settings').select('value').eq('key','superadmin_password').single();
+      const storedPass = data?.value || 'super2024';
+      const { data: d2 } = await sb.from('settings').select('value').eq('key','superadmin_username').single();
+      const storedUser = d2?.value || 'superadmin';
+      if (pass !== storedPass || user.toLowerCase() !== storedUser.toLowerCase()) {
+        showLoginErr('Incorrect username or password.'); return;
+      }
+      session = { role:'super', user, adminId:null };
+      enterApp();
+
+    } else {
+      const user = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      if (!user || !pass) { showLoginErr('Enter username and password.'); return; }
+      const { data, error } = await sb.from('admins').select('*').eq('username', user).single();
+      if (error || !data) { showLoginErr('Username not found.'); return; }
+      if (data.password !== pass) { showLoginErr('Incorrect password.'); return; }
+      session = { role:'admin', user:data.username, adminId:data.id, company:data.company };
+      enterApp();
     }
-    if (name.toLowerCase() !== storedUser.toLowerCase()) {
-      alertEl.style.display = 'flex'; alertEl.className = 'alert alert-red show';
-      alertEl.textContent = '✗ Incorrect username.'; return;
-    }
-    currentRole = 'admin';
-  } else {
-    currentRole = 'user';
+  } catch(e) {
+    showLoginErr('Error: ' + e.message);
   }
+  btn.disabled = false; btn.textContent = 'Sign In →';
+}
 
-  currentUser = name;
+function showLoginErr(msg) {
+  const el = document.getElementById('loginAlert');
+  el.textContent = '✗ ' + msg;
+  el.className = 'alert alert-red show';
+  el.style.display = 'flex';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Sign In →';
+}
+
+async function enterApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
-  document.getElementById('topbarName').textContent = currentUser;
-  document.getElementById('topbarRole').textContent = currentRole === 'admin' ? 'Admin' : 'Driver';
-
-  await loadAllData();
-  buildApp();
+  document.getElementById('topbarName').textContent = session.role==='admin' && session.company
+    ? `${session.user} (${session.company})` : session.user;
+  const roleLabels = { driver:'Driver', admin:'Admin', super:'Super Admin' };
+  const roleEl = document.getElementById('topbarRole');
+  roleEl.textContent = roleLabels[session.role];
+  roleEl.className = 'role-tag ' + session.role;
+  await loadData();
+  buildNav();
 }
 
 function logout() {
-  currentUser = null; currentRole = null; editingEntryId = null;
-  entries = []; tourValues = {};
+  session = { role:null, user:null, adminId:null };
+  cache = { drivers:[], stations:[], tours:[], tourValues:{}, entries:[], admins:[] };
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('loginDriverName').value = '';
+  document.getElementById('loginUsername').value = '';
   document.getElementById('loginPass').value = '';
-  document.getElementById('loginNameInput').value = '';
   document.getElementById('loginAlert').style.display = 'none';
-  setRole('user');
+  setLoginRole('driver');
 }
 
 // ============================================================
-// LOAD ALL DATA
+// LOAD DATA
 // ============================================================
-async function loadAllData() {
+async function loadData() {
+  if (session.role === 'driver') {
+    // Driver only needs to load admins list to pick workspace (or just load all)
+    return;
+  }
+  if (session.role === 'super') {
+    const { data } = await sb.from('admins').select('*').order('created_at');
+    cache.admins = data || [];
+    const { data: drv } = await sb.from('drivers').select('name').order('name');
+    cache.drivers = (drv||[]).map(d=>d.name);
+    return;
+  }
+  // Admin: load their own workspace
+  const aid = session.adminId;
   const [
-    { data: drvData },
-    { data: staData },
-    { data: tourData },
-    { data: tvData },
-    { data: entData },
-    { data: setData }
+    { data: drv }, { data: sta }, { data: tou },
+    { data: tv },  { data: ent }
   ] = await Promise.all([
     sb.from('drivers').select('name').order('name'),
-    sb.from('stations').select('name').order('name'),
-    sb.from('tours').select('name').order('name'),
-    sb.from('tour_values').select('*'),
-    sb.from('entries').select('*').order('date', { ascending: false }),
-    sb.from('settings').select('*')
+    sb.from('stations').select('*').eq('admin_id', aid).order('name'),
+    sb.from('tours').select('*').eq('admin_id', aid).order('name'),
+    sb.from('tour_values').select('*').eq('admin_id', aid),
+    sb.from('entries').select('*').eq('admin_id', aid).order('date', {ascending:false})
   ]);
-
-  drivers  = (drvData || []).map(d => d.name);
-  stations = (staData || []).map(s => s.name);
-  tours    = (tourData || []).map(t => t.name);
-  entries  = entData || [];
-
-  // Build tourValues object
-  tourValues = {};
-  tours.forEach(t => { tourValues[t] = {}; stations.forEach(s => { tourValues[t][s] = 0; }); });
-  (tvData || []).forEach(row => {
-    if (!tourValues[row.tour_name]) tourValues[row.tour_name] = {};
-    tourValues[row.tour_name][row.station_name] = parseFloat(row.hours) || 0;
+  cache.drivers  = (drv||[]).map(d=>d.name);
+  cache.stations = (sta||[]).map(s=>s.name);
+  cache.tours    = (tou||[]).map(t=>t.name);
+  cache.entries  = ent || [];
+  cache.tourValues = {};
+  cache.tours.forEach(t => { cache.tourValues[t]={}; cache.stations.forEach(s=>{ cache.tourValues[t][s]=0; }); });
+  (tv||[]).forEach(r => {
+    if (!cache.tourValues[r.tour_name]) cache.tourValues[r.tour_name]={};
+    cache.tourValues[r.tour_name][r.station_name] = parseFloat(r.hours)||0;
   });
-
-  adminPassword = (setData || []).find(r => r.key === 'admin_password')?.value || 'admin2024';
 }
 
 // ============================================================
-// HELPERS
+// NAVIGATION
 // ============================================================
-function getTourHours(tour, station) {
-  return tourValues[tour]?.[station] || 0;
-}
-function fmtDate(d) {
-  if (!d) return '—';
-  const dt = new Date(d + 'T00:00:00');
-  return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-}
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showAlert(id, msg, type='green') {
-  const el = document.getElementById(id);
-  el.className = `alert alert-${type} show`;
-  el.textContent = msg;
-  el.style.display = 'flex';
-  setTimeout(() => { el.classList.remove('show'); el.style.display='none'; }, 4000);
+function buildNav() {
+  const nav = document.getElementById('navTabs');
+  if (session.role === 'driver') {
+    nav.innerHTML = `
+      <div class="ntab active" onclick="navigate('entries')" id="nt-entries">📋 My Entries</div>
+      <div class="ntab" onclick="navigate('hours')" id="nt-hours">⏱ Hours Report</div>`;
+    navigate('entries');
+  } else if (session.role === 'admin') {
+    nav.innerHTML = `
+      <div class="ntab active" onclick="navigate('entries')" id="nt-entries">📋 All Entries</div>
+      <div class="ntab" onclick="navigate('hours')" id="nt-hours">⏱ Hours Report</div>
+      <div class="ntab" onclick="navigate('tours')" id="nt-tours">🗺 Tours</div>
+      <div class="ntab" onclick="navigate('stations')" id="nt-stations">📍 Stations</div>
+      <div class="ntab" onclick="navigate('drivers')" id="nt-drivers">👥 Drivers</div>
+      <div class="ntab" onclick="navigate('settings')" id="nt-settings">🔐 Settings</div>`;
+    navigate('entries');
+  } else {
+    nav.innerHTML = `
+      <div class="ntab active" onclick="navigate('admins')" id="nt-admins">⚙️ Admin Accounts</div>
+      <div class="ntab" onclick="navigate('drivers')" id="nt-drivers">👥 Driver Pool</div>
+      <div class="ntab" onclick="navigate('settings')" id="nt-settings">🔐 Settings</div>`;
+    navigate('admins');
+  }
 }
 
-function getPillClass(tourName) {
-  const known = ['A','B','C','D','E'];
-  const idx = known.indexOf(tourName);
-  if (idx >= 0) return `pill-${tourName}`;
-  // For custom tours cycle through colors
-  const colors = ['pill-A','pill-B','pill-C','pill-D','pill-E'];
-  return colors[tours.indexOf(tourName) % colors.length] || 'pill-none';
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('nt-'+page);
+  if (el) el.classList.add('active');
+  const pages = {
+    entries: session.role==='driver' ? renderDriverEntries : renderAdminEntries,
+    hours: renderHoursReport,
+    tours: renderToursPage,
+    stations: renderStationsPage,
+    drivers: session.role==='super' ? renderSuperDrivers : renderAdminDrivers,
+    settings: session.role==='super' ? renderSuperSettings : renderAdminSettings,
+    admins: renderSuperAdmins,
+  };
+  pages[page]?.();
 }
 
 // ============================================================
-// APP BUILDER
+// DRIVER PORTAL
 // ============================================================
-function buildApp() {
-  if (currentRole === 'user') buildUserApp();
-  else buildAdminApp();
-}
-
-// ============================================================
-// USER APP
-// ============================================================
-function buildUserApp() {
-  document.getElementById('navTabs').innerHTML = `
-    <div class="ntab active" onclick="uNav('entries')" id="ut-entries">📋 My Entries</div>
-    <div class="ntab" onclick="uNav('hours')" id="ut-hours">⏱ Hours Report</div>
-  `;
-  uNav('entries');
-}
-
-let uPage = 'entries';
-function uNav(p) {
-  uPage = p;
-  ['entries','hours'].forEach(x => {
-    const el = document.getElementById('ut-'+x);
-    if (el) el.classList.toggle('active', x===p);
-  });
-  if (p==='entries') renderUserEntries();
-  else renderHoursReport();
-}
-
-function renderUserEntries() {
+async function renderDriverEntries() {
+  // Driver selects which admin workspace to view/add to
+  const { data: admins } = await sb.from('admins').select('id,username,company').order('username');
   const c = document.getElementById('appContent');
   c.innerHTML = `
     <div class="ph">
-      <div><div class="ph-title">My Tour Entries</div><div class="ph-sub">Add and manage your daily tour records</div></div>
-      <button class="btn btn-primary" onclick="openEntryModal()">+ Add Entry</button>
+      <div><div class="ph-title">My Tour Entries</div><div class="ph-sub">Select your admin workspace, then add entries</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏢 Select Workspace</div>
+      <div class="fg" style="max-width:320px">
+        <label>Admin / Company</label>
+        <select id="driverWorkspace" onchange="loadDriverWorkspace()">
+          <option value="">— Select workspace —</option>
+          ${(admins||[]).map(a=>`<option value="${a.id}">${a.username}${a.company?' — '+a.company:''}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div id="driverWorkspaceContent"></div>`;
+}
+
+async function loadDriverWorkspace() {
+  const adminId = document.getElementById('driverWorkspace').value;
+  const container = document.getElementById('driverWorkspaceContent');
+  if (!adminId) { container.innerHTML=''; return; }
+
+  // Load this admin's tours, stations, entries for this driver
+  const [{ data: sta },{ data: tou },{ data: tv },{ data: ent }] = await Promise.all([
+    sb.from('stations').select('name').eq('admin_id', adminId).order('name'),
+    sb.from('tours').select('name').eq('admin_id', adminId).order('name'),
+    sb.from('tour_values').select('*').eq('admin_id', adminId),
+    sb.from('entries').select('*').eq('admin_id', adminId).eq('driver', session.user).order('date',{ascending:false})
+  ]);
+
+  const wStations = (sta||[]).map(s=>s.name);
+  const wTours    = (tou||[]).map(t=>t.name);
+  const wEntries  = ent||[];
+  const wValues   = {};
+  wTours.forEach(t=>{ wValues[t]={}; wStations.forEach(s=>{ wValues[t][s]=0; }); });
+  (tv||[]).forEach(r=>{ if(!wValues[r.tour_name]) wValues[r.tour_name]={}; wValues[r.tour_name][r.station_name]=parseFloat(r.hours)||0; });
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        📋 My Entries
+        <button class="btn btn-primary btn-sm" onclick="openDriverEntryModal('${adminId}')">+ Add Entry</button>
+      </div>
+      <div class="filter-bar">
+        <div class="fg"><label>Month</label><input type="month" id="dFilterMonth" onchange="refreshDriverTable('${adminId}')"></div>
+        <div class="fg"><label>Station</label>
+          <select id="dFilterStation" onchange="refreshDriverTable('${adminId}')">
+            <option value="">All Stations</option>
+            ${wStations.map(s=>`<option>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Date</th><th>Tour</th><th>Hours</th><th>Station</th><th>Actions</th></tr></thead>
+          <tbody id="driverEntryBody"></tbody>
+        </table>
+      </div>
+    </div>`;
+
+  // Store workspace data
+  window._wData = { adminId, wStations, wTours, wValues, wEntries };
+  renderDriverEntryTable(wEntries, wValues);
+}
+
+function renderDriverEntryTable(entries, values) {
+  const tbody = document.getElementById('driverEntryBody');
+  if (!tbody) return;
+  const month   = document.getElementById('dFilterMonth')?.value||'';
+  const station = document.getElementById('dFilterStation')?.value||'';
+  let list = entries.filter(e => {
+    if (month && !e.date.startsWith(month)) return false;
+    if (station && e.station!==station) return false;
+    return true;
+  });
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text2)">No entries yet.</td></tr>`; return; }
+  tbody.innerHTML = list.map((e,i)=>`
+    <tr>
+      <td style="color:var(--text2)">${i+1}</td>
+      <td>${fmtDate(e.date)}</td>
+      <td><span class="pill ${getPillClass(e.tour, window._wData?.wTours||[])}">Tour ${e.tour}</span></td>
+      <td style="font-weight:700;color:var(--accent)">${(values[e.tour]?.[e.station])||0}h</td>
+      <td>${e.station}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-xs" onclick="openDriverEntryModal('${window._wData.adminId}','${e.id}')">✏ Edit</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDriverDelete('${e.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+async function refreshDriverTable(adminId) {
+  if (!window._wData) return;
+  renderDriverEntryTable(window._wData.wEntries, window._wData.wValues);
+}
+
+function openDriverEntryModal(adminId, entryId) {
+  const w = window._wData;
+  if (!w) return;
+  const existing = entryId ? w.wEntries.find(e=>e.id===entryId) : null;
+  editingEntryId = entryId||null;
+  document.getElementById('entryModalTitle').textContent = existing?'Edit Entry':'Add Entry';
+  document.getElementById('entryAlert').classList.remove('show');
+  document.getElementById('eDriver').value = existing?.driver||session.user;
+  document.getElementById('eDriver').readOnly = true;
+  document.getElementById('eDriver').style.background = '#f8f8f8';
+  document.getElementById('eDate').value = existing?.date||new Date().toISOString().split('T')[0];
+  document.getElementById('eTour').innerHTML = w.wTours.map(t=>`<option value="${t}" ${existing?.tour===t?'selected':''}>${t}</option>`).join('');
+  document.getElementById('eStation').innerHTML = w.wStations.map(s=>`<option value="${s}" ${existing?.station===s?'selected':''}>${s}</option>`).join('');
+  window._entryAdminId = adminId;
+  document.getElementById('entryModal').classList.add('open');
+}
+
+async function confirmDriverDelete(entryId) {
+  document.getElementById('delMsg').textContent = 'Delete this entry?';
+  document.getElementById('delConfirmBtn').onclick = async () => {
+    await sb.from('entries').delete().eq('id', entryId);
+    window._wData.wEntries = window._wData.wEntries.filter(e=>e.id!==entryId);
+    closeModal('delModal');
+    renderDriverEntryTable(window._wData.wEntries, window._wData.wValues);
+  };
+  document.getElementById('delModal').classList.add('open');
+}
+
+// ============================================================
+// ADMIN ENTRIES
+// ============================================================
+function renderAdminEntries() {
+  const c = document.getElementById('appContent');
+  c.innerHTML = `
+    <div class="ph">
+      <div><div class="ph-title">All Entries</div><div class="ph-sub">Manage all driver tour records</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button>
+        <button class="btn btn-primary" onclick="openAdminEntryModal()">+ Add Entry</button>
+      </div>
     </div>
     <div class="card">
       <div class="filter-bar">
-        <div class="fg"><label>Filter by Month</label><input type="month" id="filterMonth" onchange="renderUserEntries()"></div>
-        <div class="fg"><label>Filter by Station</label>
-          <select id="filterStation" onchange="renderUserEntries()">
-            <option value="">All Stations</option>
-            ${stations.map(s=>`<option>${s}</option>`).join('')}
+        <div class="fg"><label>Month</label><input type="month" id="filterMonth" onchange="refreshAdminEntries()"></div>
+        <div class="fg"><label>Driver</label>
+          <select id="filterDriver" onchange="refreshAdminEntries()">
+            <option value="">All Drivers</option>
+            ${cache.drivers.map(d=>`<option>${d}</option>`).join('')}
           </select>
         </div>
-        <button class="btn btn-ghost btn-sm" style="align-self:flex-end" onclick="document.getElementById('filterMonth').value='';document.getElementById('filterStation').value='';renderUserEntries()">Clear</button>
+        <div class="fg"><label>Station</label>
+          <select id="filterStation" onchange="refreshAdminEntries()">
+            <option value="">All Stations</option>
+            ${cache.stations.map(s=>`<option>${s}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="align-self:flex-end" onclick="clearAdminFilters()">Clear</button>
       </div>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>#</th><th>Date</th><th>Driver</th><th>Tour</th><th>Hours</th><th>Station</th><th>Actions</th></tr></thead>
-          <tbody id="entriesBody"></tbody>
+          <tbody id="adminEntryBody"></tbody>
         </table>
       </div>
     </div>`;
-  renderEntriesBody('entriesBody', false);
+  refreshAdminEntries();
 }
 
-function renderEntriesBody(tbodyId, allDrivers) {
-  const tbody = document.getElementById(tbodyId);
+function refreshAdminEntries() {
+  const tbody = document.getElementById('adminEntryBody');
   if (!tbody) return;
-  const month   = document.getElementById('filterMonth')?.value || '';
-  const station = document.getElementById('filterStation')?.value || '';
-  const driverF = document.getElementById('filterDriver')?.value || '';
-
-  let list = entries.filter(e => {
-    if (!allDrivers && e.driver !== currentUser) return false;
-    if (allDrivers && driverF && e.driver !== driverF) return false;
+  const month   = document.getElementById('filterMonth')?.value||'';
+  const driver  = document.getElementById('filterDriver')?.value||'';
+  const station = document.getElementById('filterStation')?.value||'';
+  let list = cache.entries.filter(e=>{
     if (month   && !e.date.startsWith(month)) return false;
-    if (station && e.station !== station) return false;
+    if (driver  && e.driver!==driver) return false;
+    if (station && e.station!==station) return false;
     return true;
   });
-
-  if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text2)">No entries found.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = list.map((e,i) => `
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2)">No entries found.</td></tr>`; return; }
+  tbody.innerHTML = list.map((e,i)=>`
     <tr>
       <td style="color:var(--text2)">${i+1}</td>
       <td>${fmtDate(e.date)}</td>
       <td><strong>${e.driver}</strong></td>
-      <td><span class="pill ${getPillClass(e.tour)}">Tour ${e.tour}</span></td>
+      <td><span class="pill ${getPillClass(e.tour,cache.tours)}">Tour ${e.tour}</span></td>
       <td style="font-weight:700;color:var(--accent)">${getTourHours(e.tour,e.station)}h</td>
       <td>${e.station}</td>
       <td><div class="td-actions">
-        <button class="btn btn-ghost btn-xs" onclick="openEntryModal('${e.id}')">✏ Edit</button>
+        <button class="btn btn-ghost btn-xs" onclick="openAdminEntryModal('${e.id}')">✏ Edit</button>
         <button class="btn btn-danger btn-xs" onclick="confirmDelete('${e.id}','entry')">🗑</button>
       </div></td>
     </tr>`).join('');
 }
 
+function clearAdminFilters() {
+  ['filterMonth','filterDriver','filterStation'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  refreshAdminEntries();
+}
+
+function openAdminEntryModal(entryId) {
+  const existing = entryId ? cache.entries.find(e=>e.id===entryId) : null;
+  editingEntryId = entryId||null;
+  document.getElementById('entryModalTitle').textContent = existing?'Edit Entry':'Add Entry';
+  document.getElementById('entryAlert').classList.remove('show');
+  document.getElementById('eDriver').value = existing?.driver||'';
+  document.getElementById('eDriver').readOnly = false;
+  document.getElementById('eDriver').style.background = '';
+  document.getElementById('eDate').value = existing?.date||new Date().toISOString().split('T')[0];
+  document.getElementById('eTour').innerHTML = cache.tours.map(t=>`<option value="${t}" ${existing?.tour===t?'selected':''}>${t}</option>`).join('');
+  document.getElementById('eStation').innerHTML = cache.stations.map(s=>`<option value="${s}" ${existing?.station===s?'selected':''}>${s}</option>`).join('');
+  window._entryAdminId = session.adminId;
+  document.getElementById('entryModal').classList.add('open');
+}
+
 // ============================================================
-// ADMIN APP
+// SAVE ENTRY (shared)
 // ============================================================
-function buildAdminApp() {
-  document.getElementById('navTabs').innerHTML = `
-    <div class="ntab active" onclick="aNav('entries')" id="at-entries">📋 All Entries</div>
-    <div class="ntab" onclick="aNav('hours')" id="at-hours">⏱ Hours Report</div>
-    <div class="ntab" onclick="aNav('tours')" id="at-tours">🗺 Tours</div>
-    <div class="ntab" onclick="aNav('stations')" id="at-stations">📍 Stations</div>
-    <div class="ntab" onclick="aNav('drivers')" id="at-drivers">👥 Drivers</div>
-    <div class="ntab" onclick="aNav('settings')" id="at-settings">🔐 Settings</div>
-  `;
-  aNav('entries');
-}
-
-let aPage = 'entries';
-function aNav(p) {
-  aPage = p;
-  ['entries','hours','tours','stations','drivers','settings'].forEach(x => {
-    const el = document.getElementById('at-'+x);
-    if (el) el.classList.toggle('active', x===p);
-  });
-  const fns = { entries:renderAdminEntries, hours:renderHoursReport, tours:renderToursAdmin, stations:renderStationsAdmin, drivers:renderDriversAdmin, settings:renderSettingsAdmin };
-  fns[p]?.();
-}
-
-function renderAdminEntries() {
-  const c = document.getElementById('appContent');
-  c.innerHTML = `
-    <div class="ph">
-      <div><div class="ph-title">All Entries</div><div class="ph-sub">View and manage all driver records</div></div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button>
-        <button class="btn btn-primary" onclick="openEntryModal()">+ Add Entry</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="filter-bar">
-        <div class="fg"><label>Month</label><input type="month" id="filterMonth" onchange="renderEntriesBody('adminBody',true)"></div>
-        <div class="fg"><label>Driver</label>
-          <select id="filterDriver" onchange="renderEntriesBody('adminBody',true)">
-            <option value="">All Drivers</option>
-            ${drivers.map(d=>`<option>${d}</option>`).join('')}
-          </select>
-        </div>
-        <div class="fg"><label>Station</label>
-          <select id="filterStation" onchange="renderEntriesBody('adminBody',true)">
-            <option value="">All Stations</option>
-            ${stations.map(s=>`<option>${s}</option>`).join('')}
-          </select>
-        </div>
-        <button class="btn btn-ghost btn-sm" style="align-self:flex-end" onclick="clearFilters()">Clear</button>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Date</th><th>Driver</th><th>Tour</th><th>Hours</th><th>Station</th><th>Actions</th></tr></thead>
-          <tbody id="adminBody"></tbody>
-        </table>
-      </div>
-    </div>`;
-  renderEntriesBody('adminBody', true);
-}
-
-function clearFilters() {
-  ['filterMonth','filterDriver','filterStation'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  renderEntriesBody('adminBody', true);
+async function saveEntry() {
+  const driver  = document.getElementById('eDriver').value.trim();
+  const date    = document.getElementById('eDate').value;
+  const tour    = document.getElementById('eTour').value;
+  const station = document.getElementById('eStation').value;
+  const adminId = window._entryAdminId || session.adminId;
+  if (!driver||!date||!tour||!station) { showAlert('entryAlert','Fill in all fields.','red'); return; }
+  const btn = document.getElementById('entrySaveBtn');
+  btn.disabled=true; btn.textContent='⏳ Saving…';
+  try {
+    if (editingEntryId) {
+      const { error } = await sb.from('entries').update({driver,date,tour,station}).eq('id',editingEntryId);
+      if (error) throw error;
+      if (session.role==='admin') {
+        const idx = cache.entries.findIndex(e=>e.id===editingEntryId);
+        if (idx>=0) cache.entries[idx]={...cache.entries[idx],driver,date,tour,station};
+      } else if (window._wData) {
+        const idx = window._wData.wEntries.findIndex(e=>e.id===editingEntryId);
+        if (idx>=0) window._wData.wEntries[idx]={...window._wData.wEntries[idx],driver,date,tour,station};
+      }
+    } else {
+      const { data, error } = await sb.from('entries').insert({admin_id:adminId,driver,date,tour,station}).select().single();
+      if (error) throw error;
+      if (session.role==='admin') cache.entries.unshift(data);
+      else if (window._wData) window._wData.wEntries.unshift(data);
+    }
+    closeModal('entryModal');
+    if (session.role==='admin') refreshAdminEntries();
+    else renderDriverEntryTable(window._wData.wEntries, window._wData.wValues);
+  } catch(e) {
+    showAlert('entryAlert','Error: '+e.message,'red');
+  }
+  btn.disabled=false; btn.textContent='Save Entry';
 }
 
 // ============================================================
@@ -572,100 +740,89 @@ function clearFilters() {
 // ============================================================
 function renderHoursReport() {
   const c = document.getElementById('appContent');
-  const isAdmin = currentRole === 'admin';
+  const isAdmin = session.role==='admin';
   c.innerHTML = `
     <div class="ph">
-      <div><div class="ph-title">Hours Report</div><div class="ph-sub">Total hours calculated from tour values per station</div></div>
-      ${isAdmin ? `<button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button>` : ''}
+      <div><div class="ph-title">Hours Report</div><div class="ph-sub">Total hours based on tour values per station</div></div>
+      ${isAdmin?`<button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button>`:''}
     </div>
     <div class="card">
-      <div class="card-title">🔍 Filter</div>
       <div class="filter-bar">
         <div class="fg"><label>Month</label><input type="month" id="rMonth" onchange="calcReport()"></div>
-        ${isAdmin ? `<div class="fg"><label>Driver</label>
+        ${isAdmin?`<div class="fg"><label>Driver</label>
           <select id="rDriver" onchange="calcReport()">
             <option value="">All Drivers</option>
-            ${drivers.map(d=>`<option>${d}</option>`).join('')}
+            ${cache.drivers.map(d=>`<option>${d}</option>`).join('')}
           </select>
-        </div>` : ''}
-        <div class="fg"><label>Station</label>
+        </div>`:''}
+        ${isAdmin?`<div class="fg"><label>Station</label>
           <select id="rStation" onchange="calcReport()">
             <option value="">All Stations</option>
-            ${stations.map(s=>`<option>${s}</option>`).join('')}
+            ${cache.stations.map(s=>`<option>${s}</option>`).join('')}
           </select>
-        </div>
+        </div>`:''}
         <button class="btn btn-ghost btn-sm" style="align-self:flex-end" onclick="calcReport()">↻ Calculate</button>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-        ${tours.map(t=>`<span class="pill ${getPillClass(t)}">Tour ${t}: ${stations.map(s=>s+' '+getTourHours(t,s)+'h').join(' / ')}</span>`).join('')}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${cache.tours.map(t=>`<span class="pill ${getPillClass(t,cache.tours)}">Tour ${t}: ${cache.stations.map(s=>s+' '+getTourHours(t,s)+'h').join(' / ')}</span>`).join('')}
       </div>
     </div>
     <div id="reportOutput"></div>`;
-  const now = new Date();
-  document.getElementById('rMonth').value = now.toISOString().slice(0,7);
+  document.getElementById('rMonth').value = new Date().toISOString().slice(0,7);
   calcReport();
 }
 
 function calcReport() {
-  const month   = document.getElementById('rMonth')?.value || '';
-  const rDriver = document.getElementById('rDriver')?.value || '';
-  const station = document.getElementById('rStation')?.value || '';
-  const isAdmin = currentRole === 'admin';
+  const entries = session.role==='driver' ? (window._wData?.wEntries||[]) : cache.entries;
+  const values  = session.role==='driver' ? (window._wData?.wValues||{}) : cache.tourValues;
+  const month   = document.getElementById('rMonth')?.value||'';
+  const rDriver = document.getElementById('rDriver')?.value||'';
+  const station = document.getElementById('rStation')?.value||'';
+  const isAdmin = session.role==='admin';
 
-  let list = entries.filter(e => {
-    if (!isAdmin && e.driver !== currentUser) return false;
-    if (isAdmin && rDriver && e.driver !== rDriver) return false;
+  let list = entries.filter(e=>{
+    if (session.role==='driver' && e.driver!==session.user) return false;
+    if (isAdmin && rDriver && e.driver!==rDriver) return false;
     if (month   && !e.date.startsWith(month)) return false;
-    if (station && e.station !== station) return false;
+    if (station && e.station!==station) return false;
     return true;
   });
 
-  const byDriver = {};
-  list.forEach(e => {
-    if (!byDriver[e.driver]) byDriver[e.driver] = { entries:[] };
-    byDriver[e.driver].entries.push(e);
-  });
+  const byDriver={};
+  list.forEach(e=>{ if(!byDriver[e.driver]) byDriver[e.driver]={entries:[]}; byDriver[e.driver].entries.push(e); });
+  const driverList = Object.keys(byDriver);
+  let totalAll=0;
+  const out=document.getElementById('reportOutput');
+  if(!out) return;
 
-  const driverList = isAdmin ? Object.keys(byDriver) : (byDriver[currentUser] ? [currentUser] : []);
-  let totalAll = 0;
-  const out = document.getElementById('reportOutput');
-  if (!out) return;
+  if(!driverList.length){ out.innerHTML=`<div class="card" style="text-align:center;padding:32px;color:var(--text2)">No data for selected period.</div>`; return; }
 
-  if (!driverList.length) {
-    out.innerHTML = `<div class="card" style="text-align:center;padding:32px;color:var(--text2)">No data for selected period.</div>`;
-    return;
-  }
-
-  let html = '';
-  driverList.forEach(driver => {
-    const data = byDriver[driver];
-    let totalHours = 0;
-    data.entries.forEach(e => { totalHours += getTourHours(e.tour, e.station); });
-    totalAll += totalHours;
-
-    const breakdown = {};
-    data.entries.forEach(e => {
-      const key = e.tour+'|'+e.station;
-      if (!breakdown[key]) breakdown[key] = { tour:e.tour, station:e.station, count:0, hours:0 };
-      breakdown[key].count++;
-      breakdown[key].hours += getTourHours(e.tour, e.station);
+  let html='';
+  driverList.forEach(driver=>{
+    const data=byDriver[driver];
+    let totalHours=0;
+    const breakdown={};
+    data.entries.forEach(e=>{
+      const h=(values[e.tour]?.[e.station])||getTourHours(e.tour,e.station);
+      totalHours+=h;
+      const key=e.tour+'|'+e.station;
+      if(!breakdown[key]) breakdown[key]={tour:e.tour,station:e.station,count:0,hours:0};
+      breakdown[key].count++; breakdown[key].hours+=h;
     });
-
-    html += `<div class="report-driver">
+    totalAll+=totalHours;
+    const tours = session.role==='driver'?(window._wData?.wTours||[]):cache.tours;
+    html+=`<div class="report-driver">
       <div class="rd-header" onclick="this.nextElementSibling.classList.toggle('open')">
         <div style="width:36px;height:36px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Syne';font-weight:800;font-size:14px;flex-shrink:0">${driver.charAt(0).toUpperCase()}</div>
         <div class="rd-name">${driver}</div>
-        <div style="text-align:right">
-          <div class="rd-hours">${totalHours}h</div>
-          <div class="rd-lbl">${data.entries.length} entries</div>
-        </div>
+        <div style="text-align:right"><div class="rd-hours">${totalHours}h</div><div class="rd-lbl">${data.entries.length} entries</div></div>
       </div>
       <div class="rd-body">
-        <div class="tour-breakdown" style="margin-bottom:12px">
+        <div class="tour-breakdown">
           ${Object.values(breakdown).map(b=>`
-            <div class="tb-chip ${getPillClass(b.tour)}" style="border-radius:8px;padding:7px 12px">
+            <div class="tb-chip ${getPillClass(b.tour,tours)}" style="border-radius:8px;padding:7px 12px">
               <span style="font-family:'Syne';font-weight:800;font-size:15px">Tour ${b.tour}</span>
-              <span style="background:rgba(0,0,0,.08);padding:1px 6px;border-radius:8px;font-size:10px;margin-left:4px">${b.station}</span>
+              <span style="background:rgba(0,0,0,.1);padding:1px 6px;border-radius:8px;font-size:10px;margin-left:4px">${b.station}</span>
               <span style="opacity:.7;margin-left:4px">×${b.count} = <strong>${b.hours}h</strong></span>
             </div>`).join('')}
         </div>
@@ -676,9 +833,9 @@ function calcReport() {
               ${data.entries.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
                 <tr>
                   <td>${fmtDate(e.date)}</td>
-                  <td><span class="pill ${getPillClass(e.tour)}">Tour ${e.tour}</span></td>
+                  <td><span class="pill ${getPillClass(e.tour,tours)}">Tour ${e.tour}</span></td>
                   <td>${e.station}</td>
-                  <td style="font-weight:700;color:var(--accent)">${getTourHours(e.tour,e.station)}h</td>
+                  <td style="font-weight:700;color:var(--accent)">${(values[e.tour]?.[e.station])||getTourHours(e.tour,e.station)}h</td>
                 </tr>`).join('')}
             </tbody>
           </table>
@@ -687,32 +844,24 @@ function calcReport() {
     </div>`;
   });
 
-  if (isAdmin) {
-    html += `<div class="month-total-box" style="margin-top:20px">
-      <div>
-        <div class="mt-label">Total Hours — All Drivers</div>
-        <div class="mt-val">${totalAll}h</div>
-        <div class="mt-sub">${driverList.length} drivers · ${list.length} entries · ${month||'All time'}</div>
-      </div>
-      <div style="margin-left:auto">
-        <button class="btn btn-green" onclick="exportExcel()">📊 Export to Excel</button>
-      </div>
-    </div>`;
-  }
-  out.innerHTML = html;
+  if (isAdmin) html+=`<div class="month-total-box">
+    <div><div class="mt-label">Total Hours — All Drivers</div><div class="mt-val">${totalAll}h</div><div class="mt-sub">${driverList.length} drivers · ${list.length} entries · ${month||'All time'}</div></div>
+    <div style="margin-left:auto"><button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button></div>
+  </div>`;
+  out.innerHTML=html;
 }
 
 // ============================================================
-// TOURS ADMIN
+// TOURS PAGE (admin)
 // ============================================================
-function renderToursAdmin() {
-  const c = document.getElementById('appContent');
-  c.innerHTML = `
-    <div class="ph"><div><div class="ph-title">Tours Management</div><div class="ph-sub">Manage tour types and hour values per station</div></div></div>
+function renderToursPage() {
+  const c=document.getElementById('appContent');
+  c.innerHTML=`
+    <div class="ph"><div><div class="ph-title">Tours Management</div><div class="ph-sub">Set hour values per tour per station</div></div></div>
     <div class="card">
-      <div class="card-title">⏱ Tour Hour Values (per Station)</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Edit how many hours each tour counts for at each station, then click Save.</p>
-      <div class="tour-editor" id="tourEditor"></div>
+      <div class="card-title">⏱ Tour Hour Values</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Edit hours per tour per station, then save.</p>
+      <div id="tourEditor"></div>
       <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
         <button class="btn btn-primary" onclick="saveTourValues()">💾 Save Values</button>
         <div class="alert alert-green" id="tvAlert" style="margin-bottom:0"></div>
@@ -722,102 +871,72 @@ function renderToursAdmin() {
       <div class="card-title">🗺 Tour Types</div>
       <div class="list-items" id="tourList"></div>
       <div class="add-row">
-        <input id="newTourInput" placeholder="New tour letter e.g. F" maxlength="5" onkeydown="if(event.key==='Enter')addTour()">
+        <input id="newTourInput" placeholder="New tour e.g. F" maxlength="5" onkeydown="if(event.key==='Enter')addTour()">
         <button class="btn btn-primary" onclick="addTour()">+ Add</button>
       </div>
     </div>`;
-  renderTourEditor();
-  renderTourList();
+  renderTourEditor(); renderTourList();
 }
 
 function renderTourEditor() {
-  const el = document.getElementById('tourEditor');
-  if (!el) return;
-  if (!stations.length || !tours.length) {
-    el.innerHTML = '<p style="color:var(--text2);font-size:13px">Add stations and tours first.</p>'; return;
-  }
-  let html = `<div class="tbl-wrap"><table>
-    <thead><tr><th>Tour</th>${stations.map(s=>`<th style="text-align:center">${s}<br><span style="font-size:9px;font-weight:400;opacity:.6">hours/cycle</span></th>`).join('')}</tr></thead>
-    <tbody>`;
-  tours.forEach(t => {
-    html += `<tr><td><span class="pill ${getPillClass(t)}" style="font-size:13px;padding:4px 12px">Tour ${t}</span></td>
-      ${stations.map(s=>`
-        <td style="text-align:center">
-          <input type="number" min="0" step="0.5" value="${tourValues[t]?.[s]??0}"
-            id="tv_${t}_${s.replace(/\s/g,'_')}"
-            style="width:80px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;font-weight:700;text-align:center;font-family:'DM Sans',sans-serif;outline:none;color:var(--text)">
-        </td>`).join('')}
+  const el=document.getElementById('tourEditor'); if(!el) return;
+  if(!cache.stations.length||!cache.tours.length){ el.innerHTML=`<p style="color:var(--text2);font-size:13px">Add stations and tours first.</p>`; return; }
+  let html=`<div class="tbl-wrap"><table><thead><tr><th>Tour</th>${cache.stations.map(s=>`<th style="text-align:center">${s}<br><span style="font-size:9px;font-weight:400;opacity:.6">hrs/cycle</span></th>`).join('')}</tr></thead><tbody>`;
+  cache.tours.forEach(t=>{
+    html+=`<tr><td><span class="pill ${getPillClass(t,cache.tours)}" style="font-size:13px;padding:4px 12px">Tour ${t}</span></td>
+      ${cache.stations.map(s=>`<td style="text-align:center"><input type="number" min="0" step="0.5" value="${cache.tourValues[t]?.[s]??0}" id="tv_${t}_${s.replace(/\s/g,'_')}" style="width:80px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;font-weight:700;text-align:center;font-family:'DM Sans';outline:none;color:var(--text)"></td>`).join('')}
     </tr>`;
   });
-  html += `</tbody></table></div>`;
-  el.innerHTML = html;
+  html+=`</tbody></table></div>`;
+  el.innerHTML=html;
 }
 
 async function saveTourValues() {
-  const btn = document.querySelector('[onclick="saveTourValues()"]');
-  btn.disabled = true; btn.textContent = '⏳ Saving…';
+  const btn=document.querySelector('[onclick="saveTourValues()"]');
+  btn.disabled=true; btn.textContent='⏳ Saving…';
   try {
-    const upserts = [];
-    tours.forEach(t => {
-      stations.forEach(s => {
-        const key = 'tv_'+t+'_'+s.replace(/\s/g,'_');
-        const el = document.getElementById(key);
-        const val = parseFloat(el?.value)||0;
-        if (!tourValues[t]) tourValues[t] = {};
-        tourValues[t][s] = val;
-        upserts.push({ tour_name:t, station_name:s, hours:val });
-      });
-    });
-    const { error } = await sb.from('tour_values').upsert(upserts, { onConflict:'tour_name,station_name' });
-    if (error) throw error;
-    showAlert('tvAlert','✓ Tour values saved!','green');
-  } catch(e) {
-    showAlert('tvAlert','✗ Error: '+e.message,'red');
-  }
-  btn.disabled = false; btn.textContent = '💾 Save Values';
+    const upserts=[];
+    cache.tours.forEach(t=>{ cache.stations.forEach(s=>{ const el=document.getElementById('tv_'+t+'_'+s.replace(/\s/g,'_')); const val=parseFloat(el?.value)||0; if(!cache.tourValues[t]) cache.tourValues[t]={}; cache.tourValues[t][s]=val; upserts.push({admin_id:session.adminId,tour_name:t,station_name:s,hours:val}); }); });
+    const { error }=await sb.from('tour_values').upsert(upserts,{onConflict:'admin_id,tour_name,station_name'});
+    if(error) throw error;
+    showAlert('tvAlert','✓ Saved!','green');
+  } catch(e){ showAlert('tvAlert','✗ '+e.message,'red'); }
+  btn.disabled=false; btn.textContent='💾 Save Values';
 }
 
 function renderTourList() {
-  const el = document.getElementById('tourList');
-  if (!el) return;
-  if (!tours.length) { el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px">No tours defined.</div>`; return; }
-  el.innerHTML = tours.map(t => {
-    const summary = stations.map(s=>`${s}: ${tourValues[t]?.[s]??0}h`).join(' · ');
-    return `<div class="li-row">
-      <span class="li-name"><span class="pill ${getPillClass(t)}">Tour ${t}</span></span>
-      <span style="font-size:12px;color:var(--text2)">${summary}</span>
-      <button class="btn btn-danger btn-xs" onclick="confirmDelete('${t}','tour')">🗑</button>
-    </div>`;
+  const el=document.getElementById('tourList'); if(!el) return;
+  if(!cache.tours.length){ el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px">No tours yet.</div>`; return; }
+  el.innerHTML=cache.tours.map(t=>{
+    const summary=cache.stations.map(s=>`${s}: ${cache.tourValues[t]?.[s]??0}h`).join(' · ');
+    return `<div class="li-row"><span class="li-name"><span class="pill ${getPillClass(t,cache.tours)}">Tour ${t}</span></span><span style="font-size:12px;color:var(--text2)">${summary}</span><button class="btn btn-danger btn-xs" onclick="confirmDelete('${t}','tour')">🗑</button></div>`;
   }).join('');
 }
 
 async function addTour() {
-  const val = document.getElementById('newTourInput').value.trim().toUpperCase();
-  if (!val || tours.includes(val)) return;
-  const { error } = await sb.from('tours').insert({ name:val });
-  if (error) { alert('Error: '+error.message); return; }
-  // Add tour_values rows for all stations
-  const rows = stations.map(s=>({ tour_name:val, station_name:s, hours:0 }));
-  if (rows.length) await sb.from('tour_values').insert(rows);
-  tours.push(val);
-  tourValues[val] = {};
-  stations.forEach(s => { tourValues[val][s] = 0; });
-  document.getElementById('newTourInput').value = '';
+  const val=document.getElementById('newTourInput').value.trim().toUpperCase();
+  if(!val||cache.tours.includes(val)) return;
+  const { error }=await sb.from('tours').insert({admin_id:session.adminId,name:val});
+  if(error){ alert('Error: '+error.message); return; }
+  const rows=cache.stations.map(s=>({admin_id:session.adminId,tour_name:val,station_name:s,hours:0}));
+  if(rows.length) await sb.from('tour_values').insert(rows);
+  cache.tours.push(val); cache.tourValues[val]={}; cache.stations.forEach(s=>{cache.tourValues[val][s]=0;});
+  document.getElementById('newTourInput').value='';
   renderTourEditor(); renderTourList();
 }
 
 // ============================================================
-// STATIONS ADMIN
+// STATIONS PAGE (admin)
 // ============================================================
-function renderStationsAdmin() {
-  const c = document.getElementById('appContent');
-  c.innerHTML = `
-    <div class="ph"><div><div class="ph-title">Stations</div><div class="ph-sub">Manage available stations</div></div></div>
+function renderStationsPage() {
+  const c=document.getElementById('appContent');
+  c.innerHTML=`
+    <div class="ph"><div><div class="ph-title">Stations</div></div></div>
     <div class="card">
-      <div class="card-title">📍 Station List</div>
+      <div class="card-title">📍 Stations</div>
       <div class="list-items" id="stationList"></div>
       <div class="add-row">
-        <input id="newStationInput" placeholder="New station name" onkeydown="if(event.key==='Enter')addStation()">
+        <input id="newStationInput" placeholder="Station name" onkeydown="if(event.key==='Enter')addStation()">
         <button class="btn btn-primary" onclick="addStation()">+ Add</button>
       </div>
     </div>`;
@@ -825,39 +944,31 @@ function renderStationsAdmin() {
 }
 
 function renderStationList() {
-  const el = document.getElementById('stationList');
-  if (!el) return;
-  if (!stations.length) { el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px">No stations.</div>`; return; }
-  el.innerHTML = stations.map(s=>`
-    <div class="li-row">
-      <span class="li-name"><strong>${s}</strong></span>
-      <button class="btn btn-danger btn-xs" onclick="confirmDelete('${s}','station')">🗑</button>
-    </div>`).join('');
+  const el=document.getElementById('stationList'); if(!el) return;
+  if(!cache.stations.length){ el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px">No stations yet.</div>`; return; }
+  el.innerHTML=cache.stations.map(s=>`<div class="li-row"><span class="li-name"><strong>${s}</strong></span><button class="btn btn-danger btn-xs" onclick="confirmDelete('${s}','station')">🗑</button></div>`).join('');
 }
 
 async function addStation() {
-  const val = document.getElementById('newStationInput').value.trim();
-  if (!val || stations.includes(val)) return;
-  const { error } = await sb.from('stations').insert({ name:val });
-  if (error) { alert('Error: '+error.message); return; }
-  // Add tour_values rows for existing tours
-  const rows = tours.map(t=>({ tour_name:t, station_name:val, hours:0 }));
-  if (rows.length) await sb.from('tour_values').insert(rows);
-  stations.push(val);
-  tours.forEach(t => { if (!tourValues[t]) tourValues[t]={}; tourValues[t][val]=0; });
+  const val=document.getElementById('newStationInput').value.trim();
+  if(!val||cache.stations.includes(val)) return;
+  const { error }=await sb.from('stations').insert({admin_id:session.adminId,name:val});
+  if(error){ alert('Error: '+error.message); return; }
+  const rows=cache.tours.map(t=>({admin_id:session.adminId,tour_name:t,station_name:val,hours:0}));
+  if(rows.length) await sb.from('tour_values').insert(rows);
+  cache.stations.push(val); cache.tours.forEach(t=>{if(!cache.tourValues[t]) cache.tourValues[t]={}; cache.tourValues[t][val]=0;});
   document.getElementById('newStationInput').value='';
   renderStationList();
 }
 
 // ============================================================
-// DRIVERS ADMIN
+// ADMIN DRIVERS PAGE
 // ============================================================
-function renderDriversAdmin() {
-  const c = document.getElementById('appContent');
-  c.innerHTML = `
-    <div class="ph"><div><div class="ph-title">Drivers</div><div class="ph-sub">Manage driver list</div></div></div>
+function renderAdminDrivers() {
+  const c=document.getElementById('appContent');
+  c.innerHTML=`
+    <div class="ph"><div><div class="ph-title">Driver Pool</div><div class="ph-sub">Shared pool — all admins see the same drivers</div></div></div>
     <div class="card">
-      <div class="card-title">👥 Driver List (${drivers.length})</div>
       <div class="list-items" id="driverList"></div>
       <div class="add-row">
         <input id="newDriverInput" placeholder="Full driver name" onkeydown="if(event.key==='Enter')addDriver()">
@@ -868,284 +979,267 @@ function renderDriversAdmin() {
 }
 
 function renderDriverList() {
-  const el = document.getElementById('driverList');
-  if (!el) return;
-  if (!drivers.length) { el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px">No drivers.</div>`; return; }
-  el.innerHTML = drivers.map(d=>`
-    <div class="li-row">
-      <span class="li-name"><strong>${d}</strong></span>
-      <button class="btn btn-danger btn-xs" onclick="confirmDelete('${d}','driver')">🗑</button>
-    </div>`).join('');
+  const el=document.getElementById('driverList'); if(!el) return;
+  if(!cache.drivers.length){ el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px">No drivers yet.</div>`; return; }
+  el.innerHTML=cache.drivers.map(d=>`<div class="li-row"><span class="li-name"><strong>${d}</strong></span><button class="btn btn-danger btn-xs" onclick="confirmDelete('${d}','driver')">🗑</button></div>`).join('');
 }
 
 async function addDriver() {
-  const val = document.getElementById('newDriverInput').value.trim();
-  if (!val || drivers.includes(val)) return;
-  const { error } = await sb.from('drivers').insert({ name:val });
-  if (error) { alert('Error: '+error.message); return; }
-  drivers.push(val);
+  const val=document.getElementById('newDriverInput').value.trim();
+  if(!val||cache.drivers.includes(val)) return;
+  const { error }=await sb.from('drivers').insert({name:val});
+  if(error){ alert('Error: '+error.message); return; }
+  cache.drivers.push(val);
   document.getElementById('newDriverInput').value='';
   renderDriverList();
 }
 
 // ============================================================
-// SETTINGS ADMIN (Change Password)
+// ADMIN SETTINGS
 // ============================================================
-function renderSettingsAdmin() {
-  const c = document.getElementById('appContent');
-  c.innerHTML = `
-    <div class="ph"><div><div class="ph-title">🔐 Settings</div><div class="ph-sub">Manage admin credentials</div></div></div>
-
+function renderAdminSettings() {
+  const c=document.getElementById('appContent');
+  c.innerHTML=`
+    <div class="ph"><div><div class="ph-title">🔐 Settings</div></div></div>
     <div class="card" style="max-width:460px">
-      <div class="card-title">👤 Change Admin Username</div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:18px">Update the admin username used to log in.</p>
-      <div class="fg">
-        <label>Current Username</label>
-        <input type="text" id="unCurrent" value="${currentUser}" readonly style="background:#f8f8f8">
-      </div>
-      <div class="fg">
-        <label>New Username</label>
-        <input type="text" id="unNew" placeholder="Enter new username" onkeydown="if(event.key==='Enter')changeUsername()">
-      </div>
-      <div class="fg">
-        <label>Confirm with Password</label>
-        <input type="password" id="unPass" placeholder="Enter current password" onkeydown="if(event.key==='Enter')changeUsername()">
-      </div>
-      <div class="alert alert-green" id="unOk"></div>
-      <div class="alert alert-red"   id="unErr"></div>
-      <button class="btn btn-primary" id="unBtn" onclick="changeUsername()" style="width:100%;justify-content:center;margin-bottom:0">
-        👤 Update Username
-      </button>
-    </div>
-
-    <div class="card" style="max-width:460px;margin-top:0">
-      <div class="card-title">🔑 Change Admin Password</div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:18px">The new password will be saved to the database and work on all devices immediately.</p>
-      <div class="fg">
-        <label>Current Password</label>
-        <input type="password" id="cpCurrent" placeholder="Enter current password">
-      </div>
-      <div class="fg">
-        <label>New Password</label>
-        <input type="password" id="cpNew" placeholder="At least 4 characters">
-      </div>
-      <div class="fg">
-        <label>Confirm New Password</label>
-        <input type="password" id="cpConfirm" placeholder="Repeat new password" onkeydown="if(event.key==='Enter')changePassword()">
-      </div>
+      <div class="card-title">🔑 Change Password</div>
+      <div class="fg"><label>Current Password</label><input type="password" id="cpCurrent" placeholder="Current password"></div>
+      <div class="fg"><label>New Password</label><input type="password" id="cpNew" placeholder="Min 4 characters"></div>
+      <div class="fg"><label>Confirm New Password</label><input type="password" id="cpConfirm" placeholder="Repeat new password" onkeydown="if(event.key==='Enter')changeAdminPassword()"></div>
       <div class="alert alert-green" id="cpOk"></div>
-      <div class="alert alert-red"   id="cpErr"></div>
-      <button class="btn btn-primary" id="cpBtn" onclick="changePassword()" style="width:100%;justify-content:center">
-        🔒 Update Password
-      </button>
+      <div class="alert alert-red" id="cpErr"></div>
+      <button class="btn btn-primary" id="cpBtn" onclick="changeAdminPassword()" style="width:100%;justify-content:center">🔒 Update Password</button>
     </div>`;
 }
 
-async function changeUsername() {
-  const newUser = document.getElementById('unNew').value.trim();
-  const pass    = document.getElementById('unPass').value;
-  document.getElementById('unOk').classList.remove('show');
-  document.getElementById('unErr').classList.remove('show');
-
-  if (!newUser) { showAlert('unErr','✗ Please enter a new username.','red'); return; }
-
-  // Verify password
-  const { data } = await sb.from('settings').select('value').eq('key','admin_password').single();
-  const stored = data?.value || 'admin2024';
-  if (pass !== stored) { showAlert('unErr','✗ Incorrect password.','red'); return; }
-
-  const btn = document.getElementById('unBtn');
-  btn.disabled=true; btn.textContent='⏳ Saving…';
-
-  const { error } = await sb.from('settings').upsert({ key:'admin_username', value:newUser }, { onConflict:'key' });
-  if (error) { showAlert('unErr','✗ Error: '+error.message,'red'); btn.disabled=false; btn.textContent='👤 Update Username'; return; }
-
-  currentUser = newUser;
-  document.getElementById('topbarName').textContent = currentUser;
-  document.getElementById('unCurrent').value = currentUser;
-  document.getElementById('unNew').value = '';
-  document.getElementById('unPass').value = '';
-  showAlert('unOk','✓ Username updated successfully!','green');
-  btn.disabled=false; btn.textContent='👤 Update Username';
-}
-
-async function changePassword() {
-  const current = document.getElementById('cpCurrent').value;
-  const newPass  = document.getElementById('cpNew').value;
-  const confirm  = document.getElementById('cpConfirm').value;
-  document.getElementById('cpOk').classList.remove('show');
-  document.getElementById('cpErr').classList.remove('show');
-
-  // Fetch latest password from DB
-  const { data } = await sb.from('settings').select('value').eq('key','admin_password').single();
-  const stored = data?.value || 'admin2024';
-
-  if (current !== stored) { showAlert('cpErr','✗ Current password is incorrect.','red'); return; }
-  if (newPass.length < 4) { showAlert('cpErr','✗ New password must be at least 4 characters.','red'); return; }
-  if (newPass !== confirm) { showAlert('cpErr','✗ Passwords do not match.','red'); return; }
-
-  const btn = document.getElementById('cpBtn');
-  btn.disabled=true; btn.textContent='⏳ Saving…';
-
-  const { error } = await sb.from('settings').upsert({ key:'admin_password', value:newPass }, { onConflict:'key' });
-  if (error) { showAlert('cpErr','✗ Error: '+error.message,'red'); btn.disabled=false; btn.textContent='🔒 Update Password'; return; }
-
-  adminPassword = newPass;
-  document.getElementById('cpCurrent').value='';
-  document.getElementById('cpNew').value='';
-  document.getElementById('cpConfirm').value='';
-  showAlert('cpOk','✓ Password updated successfully! Saved to database.','green');
+async function changeAdminPassword() {
+  const current=document.getElementById('cpCurrent').value;
+  const newPass=document.getElementById('cpNew').value;
+  const confirm=document.getElementById('cpConfirm').value;
+  const { data }=await sb.from('admins').select('password').eq('id',session.adminId).single();
+  if(current!==data?.password){ showAlert('cpErr','✗ Current password incorrect.','red'); return; }
+  if(newPass.length<4){ showAlert('cpErr','✗ Min 4 characters.','red'); return; }
+  if(newPass!==confirm){ showAlert('cpErr','✗ Passwords do not match.','red'); return; }
+  const btn=document.getElementById('cpBtn'); btn.disabled=true; btn.textContent='⏳ Saving…';
+  const { error }=await sb.from('admins').update({password:newPass}).eq('id',session.adminId);
+  if(error){ showAlert('cpErr','✗ '+error.message,'red'); }
+  else { document.getElementById('cpCurrent').value=''; document.getElementById('cpNew').value=''; document.getElementById('cpConfirm').value=''; showAlert('cpOk','✓ Password updated!','green'); }
   btn.disabled=false; btn.textContent='🔒 Update Password';
 }
 
 // ============================================================
-// ENTRY MODAL
+// SUPER ADMIN — ADMINS
 // ============================================================
-function openEntryModal(entryId) {
-  editingEntryId = entryId || null;
-  const existing = entryId ? entries.find(e=>e.id===entryId) : null;
-  document.getElementById('entryModalTitle').textContent = existing ? 'Edit Entry' : 'Add Entry';
-  document.getElementById('entryAlert').classList.remove('show');
-
-  const dSel = document.getElementById('eDriver');
-  if (currentRole === 'admin') {
-    // Admin sees a select with all drivers
-    const opts = drivers.length
-      ? drivers.map(d=>`<option value="${d}" ${existing?.driver===d?'selected':''}>${d}</option>`).join('')
-      : `<option value="${existing?.driver||''}">${existing?.driver||''}</option>`;
-    dSel.outerHTML = `<select id="eDriver" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none">${opts}</select>`;
-  } else {
-    // Driver sees their own name pre-filled, read-only
-    dSel.outerHTML = `<input type="text" id="eDriver" value="${existing?.driver||currentUser}" readonly style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#f8f8f8;outline:none">`;
-  }
-
-  document.getElementById('eDate').value = existing?.date || new Date().toISOString().split('T')[0];
-
-  const tSel = document.getElementById('eTour');
-  tSel.innerHTML = tours.map(t=>`<option value="${t}" ${existing?.tour===t?'selected':''}>${t}</option>`).join('');
-
-  const sSel = document.getElementById('eStation');
-  sSel.innerHTML = stations.map(s=>`<option value="${s}" ${existing?.station===s?'selected':''}>${s}</option>`).join('');
-
-  document.getElementById('entryModal').classList.add('open');
+function renderSuperAdmins() {
+  const c=document.getElementById('appContent');
+  c.innerHTML=`
+    <div class="ph">
+      <div><div class="ph-title">Admin Accounts</div><div class="ph-sub">${cache.admins.length} admin accounts</div></div>
+      <button class="btn btn-blue" onclick="document.getElementById('createAdminModal').classList.add('open')">+ Create Admin</button>
+    </div>
+    <div id="adminsList"></div>`;
+  renderAdminsList();
 }
 
-async function saveEntry() {
-  const driver  = document.getElementById('eDriver').value;
-  const date    = document.getElementById('eDate').value;
-  const tour    = document.getElementById('eTour').value;
-  const station = document.getElementById('eStation').value;
-  if (!driver||!date||!tour||!station) return;
+function renderAdminsList() {
+  const el=document.getElementById('adminsList'); if(!el) return;
+  if(!cache.admins.length){ el.innerHTML=`<div class="card" style="text-align:center;padding:32px;color:var(--text2)">No admin accounts yet. Create the first one!</div>`; return; }
+  el.innerHTML=cache.admins.map(a=>`
+    <div class="admin-card">
+      <div class="admin-avatar">${a.username.charAt(0).toUpperCase()}</div>
+      <div class="admin-info">
+        <div class="admin-name">${a.username}</div>
+        <div class="admin-company">${a.company||'—'}</div>
+        <div class="admin-meta">Created: ${fmtDate(a.created_at?.split('T')[0])}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="openEditAdmin('${a.id}','${a.username}','${a.company||''}')">✏ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDelete('${a.id}','admin_account')">🗑 Delete</button>
+      </div>
+    </div>`).join('');
+}
 
-  const btn = document.getElementById('entrySaveBtn');
-  btn.disabled=true; btn.textContent='⏳ Saving…';
+async function createAdmin() {
+  const username=document.getElementById('caUsername').value.trim();
+  const password=document.getElementById('caPassword').value;
+  const company=document.getElementById('caCompany').value.trim();
+  if(!username||!password){ showAlert('caErr','Fill in username and password.','red'); return; }
+  if(password.length<4){ showAlert('caErr','Password min 4 characters.','red'); return; }
+  const btn=document.getElementById('caBtn'); btn.disabled=true; btn.textContent='⏳ Creating…';
+  const { data, error }=await sb.from('admins').insert({username,password,company}).select().single();
+  if(error){ showAlert('caErr','✗ '+error.message,'red'); btn.disabled=false; btn.textContent='Create Account'; return; }
+  cache.admins.push(data);
+  document.getElementById('caUsername').value=''; document.getElementById('caPassword').value=''; document.getElementById('caCompany').value='';
+  showAlert('caOk','✓ Admin account created!','green');
+  btn.disabled=false; btn.textContent='Create Account';
+  renderAdminsList();
+}
 
-  try {
-    if (editingEntryId) {
-      const { error } = await sb.from('entries').update({ driver, date, tour, station }).eq('id', editingEntryId);
-      if (error) throw error;
-      const idx = entries.findIndex(e=>e.id===editingEntryId);
-      if (idx>=0) entries[idx] = { ...entries[idx], driver, date, tour, station };
-    } else {
-      const { data, error } = await sb.from('entries').insert({ driver, date, tour, station }).select().single();
-      if (error) throw error;
-      entries.unshift(data);
-    }
-    closeModal('entryModal');
-    if (currentRole==='user') { uPage==='entries' ? renderUserEntries() : renderHoursReport(); }
-    else { aPage==='entries' ? renderAdminEntries() : renderHoursReport(); }
-  } catch(e) {
-    document.getElementById('entryAlert').className='alert alert-red show';
-    document.getElementById('entryAlert').textContent='✗ Error: '+e.message;
-  }
-  btn.disabled=false; btn.textContent='Save Entry';
+function openEditAdmin(id, username, company) {
+  document.getElementById('eaId').value=id;
+  document.getElementById('eaUsername').value=username;
+  document.getElementById('eaPassword').value='';
+  document.getElementById('eaCompany').value=company;
+  document.getElementById('eaErr').classList.remove('show');
+  document.getElementById('eaOk').classList.remove('show');
+  document.getElementById('editAdminModal').classList.add('open');
+}
+
+async function updateAdmin() {
+  const id=document.getElementById('eaId').value;
+  const username=document.getElementById('eaUsername').value.trim();
+  const password=document.getElementById('eaPassword').value;
+  const company=document.getElementById('eaCompany').value.trim();
+  if(!username){ showAlert('eaErr','Username required.','red'); return; }
+  const update={username,company};
+  if(password){ if(password.length<4){ showAlert('eaErr','Password min 4 chars.','red'); return; } update.password=password; }
+  const btn=document.getElementById('eaBtn'); btn.disabled=true; btn.textContent='⏳ Saving…';
+  const { error }=await sb.from('admins').update(update).eq('id',id);
+  if(error){ showAlert('eaErr','✗ '+error.message,'red'); btn.disabled=false; btn.textContent='Save Changes'; return; }
+  const idx=cache.admins.findIndex(a=>a.id===id);
+  if(idx>=0) cache.admins[idx]={...cache.admins[idx],...update};
+  showAlert('eaOk','✓ Updated!','green');
+  btn.disabled=false; btn.textContent='Save Changes';
+  renderAdminsList();
+}
+
+// ============================================================
+// SUPER ADMIN — DRIVERS
+// ============================================================
+function renderSuperDrivers() {
+  const c=document.getElementById('appContent');
+  c.innerHTML=`
+    <div class="ph"><div><div class="ph-title">Driver Pool</div><div class="ph-sub">Shared across all admin workspaces</div></div></div>
+    <div class="card">
+      <div class="list-items" id="driverList"></div>
+      <div class="add-row">
+        <input id="newDriverInput" placeholder="Full driver name" onkeydown="if(event.key==='Enter')addDriver()">
+        <button class="btn btn-blue" onclick="addDriver()">+ Add</button>
+      </div>
+    </div>`;
+  renderDriverList();
+}
+
+// ============================================================
+// SUPER ADMIN — SETTINGS
+// ============================================================
+function renderSuperSettings() {
+  const c=document.getElementById('appContent');
+  c.innerHTML=`
+    <div class="ph"><div><div class="ph-title">🔐 Super Admin Settings</div></div></div>
+    <div class="card" style="max-width:460px">
+      <div class="card-title">👤 Change Super Admin Username</div>
+      <div class="fg"><label>New Username</label><input type="text" id="suNew" placeholder="New username"></div>
+      <div class="fg"><label>Confirm with Password</label><input type="password" id="suPass" placeholder="Current password"></div>
+      <div class="alert alert-green" id="suOk"></div>
+      <div class="alert alert-red" id="suErr"></div>
+      <button class="btn btn-blue" onclick="changeSuperUsername()" style="width:100%;justify-content:center">👤 Update Username</button>
+    </div>
+    <div class="card" style="max-width:460px;margin-top:0">
+      <div class="card-title">🔑 Change Password</div>
+      <div class="fg"><label>Current Password</label><input type="password" id="spCurrent" placeholder="Current password"></div>
+      <div class="fg"><label>New Password</label><input type="password" id="spNew" placeholder="Min 4 characters"></div>
+      <div class="fg"><label>Confirm</label><input type="password" id="spConfirm" placeholder="Repeat" onkeydown="if(event.key==='Enter')changeSuperPassword()"></div>
+      <div class="alert alert-green" id="spOk"></div>
+      <div class="alert alert-red" id="spErr"></div>
+      <button class="btn btn-blue" onclick="changeSuperPassword()" style="width:100%;justify-content:center">🔒 Update Password</button>
+    </div>`;
+}
+
+async function changeSuperUsername() {
+  const newUser=document.getElementById('suNew').value.trim();
+  const pass=document.getElementById('suPass').value;
+  const { data }=await sb.from('settings').select('value').eq('key','superadmin_password').single();
+  if(pass!==data?.value){ showAlert('suErr','✗ Incorrect password.','red'); return; }
+  if(!newUser){ showAlert('suErr','✗ Enter new username.','red'); return; }
+  await sb.from('settings').upsert({key:'superadmin_username',value:newUser},{onConflict:'key'});
+  session.user=newUser; document.getElementById('topbarName').textContent=newUser;
+  document.getElementById('suNew').value=''; document.getElementById('suPass').value='';
+  showAlert('suOk','✓ Username updated!','green');
+}
+
+async function changeSuperPassword() {
+  const current=document.getElementById('spCurrent').value;
+  const newPass=document.getElementById('spNew').value;
+  const confirm=document.getElementById('spConfirm').value;
+  const { data }=await sb.from('settings').select('value').eq('key','superadmin_password').single();
+  if(current!==data?.value){ showAlert('spErr','✗ Current password incorrect.','red'); return; }
+  if(newPass.length<4){ showAlert('spErr','✗ Min 4 characters.','red'); return; }
+  if(newPass!==confirm){ showAlert('spErr','✗ Passwords do not match.','red'); return; }
+  await sb.from('settings').upsert({key:'superadmin_password',value:newPass},{onConflict:'key'});
+  document.getElementById('spCurrent').value=''; document.getElementById('spNew').value=''; document.getElementById('spConfirm').value='';
+  showAlert('spOk','✓ Password updated!','green');
 }
 
 // ============================================================
 // DELETE
 // ============================================================
 function confirmDelete(id, type) {
-  const msgs = {
-    entry:'Delete this tour entry? This cannot be undone.',
-    tour:`Remove Tour "${id}"?`,
-    station:`Remove station "${id}"?`,
-    driver:`Remove driver "${id}"?`
-  };
-  document.getElementById('delMsg').textContent = msgs[type]||'Are you sure?';
-  document.getElementById('delConfirmBtn').onclick = () => { doDelete(id,type); closeModal('delModal'); };
+  const msgs={entry:'Delete this entry?',tour:`Remove Tour "${id}"?`,station:`Remove station "${id}"?`,driver:`Remove driver "${id}"?`,admin_account:'Delete this admin account and ALL their data?'};
+  document.getElementById('delMsg').textContent=msgs[type]||'Are you sure?';
+  document.getElementById('delConfirmBtn').onclick=()=>{ doDelete(id,type); closeModal('delModal'); };
   document.getElementById('delModal').classList.add('open');
 }
 
 async function doDelete(id, type) {
-  if (type==='entry') {
-    await sb.from('entries').delete().eq('id',id);
-    entries = entries.filter(e=>e.id!==id);
-  } else if (type==='tour') {
-    await sb.from('tours').delete().eq('name',id);
-    await sb.from('tour_values').delete().eq('tour_name',id);
-    tours = tours.filter(t=>t!==id);
-    delete tourValues[id];
-  } else if (type==='station') {
-    await sb.from('stations').delete().eq('name',id);
-    await sb.from('tour_values').delete().eq('station_name',id);
-    stations = stations.filter(s=>s!==id);
-    tours.forEach(t=>{ delete tourValues[t]?.[id]; });
-  } else if (type==='driver') {
-    await sb.from('drivers').delete().eq('name',id);
-    drivers = drivers.filter(d=>d!==id);
-  }
-  // Refresh current page
-  const nav = currentRole==='user' ? uPage : aPage;
-  const fns = { entries: currentRole==='user'?renderUserEntries:renderAdminEntries, hours:renderHoursReport, tours:renderToursAdmin, stations:renderStationsAdmin, drivers:renderDriversAdmin, settings:renderSettingsAdmin };
-  fns[nav]?.();
+  if(type==='entry'){ await sb.from('entries').delete().eq('id',id); cache.entries=cache.entries.filter(e=>e.id!==id); refreshAdminEntries(); }
+  else if(type==='tour'){ await sb.from('tours').delete().eq('name',id).eq('admin_id',session.adminId); await sb.from('tour_values').delete().eq('tour_name',id).eq('admin_id',session.adminId); cache.tours=cache.tours.filter(t=>t!==id); delete cache.tourValues[id]; renderTourEditor(); renderTourList(); }
+  else if(type==='station'){ await sb.from('stations').delete().eq('name',id).eq('admin_id',session.adminId); await sb.from('tour_values').delete().eq('station_name',id).eq('admin_id',session.adminId); cache.stations=cache.stations.filter(s=>s!==id); cache.tours.forEach(t=>{delete cache.tourValues[t]?.[id];}); renderStationList(); }
+  else if(type==='driver'){ await sb.from('drivers').delete().eq('name',id); cache.drivers=cache.drivers.filter(d=>d!==id); renderDriverList(); }
+  else if(type==='admin_account'){ await sb.from('admins').delete().eq('id',id); cache.admins=cache.admins.filter(a=>a.id!==id); renderAdminsList(); }
 }
 
 // ============================================================
 // EXPORT EXCEL
 // ============================================================
 function exportExcel() {
-  const month   = document.getElementById('rMonth')?.value || document.getElementById('filterMonth')?.value || '';
-  const rDriver = document.getElementById('rDriver')?.value || '';
-  const station = document.getElementById('rStation')?.value || document.getElementById('filterStation')?.value || '';
-
-  let list = entries.filter(e => {
-    if (month   && !e.date.startsWith(month)) return false;
-    if (rDriver && e.driver!==rDriver) return false;
-    if (station && e.station!==station) return false;
+  const month=document.getElementById('rMonth')?.value||document.getElementById('filterMonth')?.value||'';
+  const rDriver=document.getElementById('rDriver')?.value||'';
+  const station=document.getElementById('rStation')?.value||document.getElementById('filterStation')?.value||'';
+  let list=cache.entries.filter(e=>{
+    if(month&&!e.date.startsWith(month)) return false;
+    if(rDriver&&e.driver!==rDriver) return false;
+    if(station&&e.station!==station) return false;
     return true;
   }).sort((a,b)=>b.date.localeCompare(a.date));
-
-  const wb = XLSX.utils.book_new();
-
-  // Entries sheet
-  const rows = [['Date','Driver','Tour','Hours','Station']];
-  list.forEach(e => rows.push([e.date, e.driver, 'Tour '+e.tour, getTourHours(e.tour,e.station), e.station]));
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:12},{wch:22},{wch:10},{wch:10},{wch:14}];
-  XLSX.utils.book_append_sheet(wb, ws, 'Entries');
-
-  // Summary sheet
-  const byDriver = {};
-  list.forEach(e => {
-    if (!byDriver[e.driver]) byDriver[e.driver] = { tours:{}, total:0 };
-    byDriver[e.driver].tours[e.tour] = (byDriver[e.driver].tours[e.tour]||0)+1;
-    byDriver[e.driver].total += getTourHours(e.tour,e.station);
-  });
-  const sumRows = [['Driver',...tours.map(t=>`Tour ${t} (count)`),'Total Hours']];
-  Object.entries(byDriver).forEach(([name,data]) => {
-    sumRows.push([name,...tours.map(t=>data.tours[t]||0),data.total]);
-  });
-  sumRows.push(['TOTAL',...tours.map(t=>Object.values(byDriver).reduce((a,d)=>a+(d.tours[t]||0),0)),Object.values(byDriver).reduce((a,d)=>a+d.total,0)]);
-  const ws2 = XLSX.utils.aoa_to_sheet(sumRows);
-  ws2['!cols'] = [{wch:22},...tours.map(()=>({wch:14})),{wch:14}];
-  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
-
-  XLSX.writeFile(wb, `TourReport_${month||'All'}.xlsx`);
+  const wb=XLSX.utils.book_new();
+  const rows=[['Date','Driver','Tour','Hours','Station']];
+  list.forEach(e=>rows.push([e.date,e.driver,'Tour '+e.tour,getTourHours(e.tour,e.station),e.station]));
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:22},{wch:10},{wch:10},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Entries');
+  const byDriver={};
+  list.forEach(e=>{ if(!byDriver[e.driver]) byDriver[e.driver]={tours:{},total:0}; byDriver[e.driver].tours[e.tour]=(byDriver[e.driver].tours[e.tour]||0)+1; byDriver[e.driver].total+=getTourHours(e.tour,e.station); });
+  const sumRows=[['Driver',...cache.tours.map(t=>`Tour ${t} (count)`),'Total Hours']];
+  Object.entries(byDriver).forEach(([name,data])=>sumRows.push([name,...cache.tours.map(t=>data.tours[t]||0),data.total]));
+  sumRows.push(['TOTAL',...cache.tours.map(t=>Object.values(byDriver).reduce((a,d)=>a+(d.tours[t]||0),0)),Object.values(byDriver).reduce((a,d)=>a+d.total,0)]);
+  const ws2=XLSX.utils.aoa_to_sheet(sumRows);
+  ws2['!cols']=[{wch:22},...cache.tours.map(()=>({wch:14})),{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Summary');
+  XLSX.writeFile(wb,`TourReport_${month||'All'}.xlsx`);
 }
 
 // ============================================================
-// START
+// HELPERS
 // ============================================================
+function getTourHours(tour,station){ return cache.tourValues[tour]?.[station]||0; }
+function fmtDate(d){ if(!d) return '—'; return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function showAlert(id,msg,type='green'){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.className=`alert alert-${type} show`;
+  el.textContent=msg; el.style.display='flex';
+  setTimeout(()=>{ el.classList.remove('show'); el.style.display='none'; },4000);
+}
+function getPillClass(tour,tours){
+  const colors=['pill-A','pill-B','pill-C','pill-D','pill-E'];
+  const known=['A','B','C','D','E'];
+  if(known.includes(tour)) return 'pill-'+tour;
+  const idx=(tours||[]).indexOf(tour);
+  return idx>=0?colors[idx%colors.length]:'pill-none';
+}
+
 startup();
 </script>
 </body>
