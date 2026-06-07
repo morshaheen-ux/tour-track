@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TourTrack</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
 :root{--bg:#f5f4f0;--white:#fff;--dark:#1a1a2e;--accent:#e94560;--green:#06d6a0;--blue:#3b82f6;--border:#e0ddd6;--text:#2d2d2d;--text2:#888;--radius:10px;--shadow:0 2px 16px rgba(0,0,0,.07);}
@@ -288,7 +288,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
 <script>
 const SUPABASE_URL = 'https://clvzwiykjqrpnhgaywlr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdnp3aXlranFycG5oZ2F5d2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxOTQzMjksImV4cCI6MjA5NDc3MDMyOX0.T7p4RTZAzW3_dUVPSOrzTLz-My_9a1lQZRgNEkliR_A';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // STATE
 let session = { role:null, user:null, adminId:null };
@@ -649,16 +649,23 @@ function updateLoginTexts() {
 // STARTUP
 // ============================================================
 async function startup() {
+  document.getElementById('loaderMsg').textContent = 'Connecting to database…';
+  console.log('Starting up...');
+  console.log('Supabase lib:', typeof supabase);
+  console.log('sb client:', typeof sb);
   try {
-    document.getElementById('loaderMsg').textContent = 'Connecting to database…';
-    const { data, error } = await sb.from('settings').select('key').limit(1);
-    if (error) { console.error('Supabase error:', error); throw error; }
+    const { data, error } = await Promise.race([
+      sb.from('settings').select('key').limit(1),
+      new Promise((_,rej) => setTimeout(() => rej(new Error('Timeout after 10s')), 10000))
+    ]);
+    console.log('DB response:', data, error);
+    if (error) throw error;
     showLogin();
   } catch(e) {
-    console.error('Startup error:', e);
-    document.getElementById('loaderMsg').textContent = '⚠️ Connection failed: ' + (e.message || String(e));
+    console.error('Startup failed:', e);
+    const msg = '⚠️ ' + (e.message || String(e));
+    document.getElementById('loaderMsg').textContent = msg;
     const loader = document.getElementById('globalLoader');
-    // Remove old retry btn if exists
     const old = loader.querySelector('.retry-btn');
     if (old) old.remove();
     const btn = document.createElement('button');
