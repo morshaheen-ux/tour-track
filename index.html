@@ -650,17 +650,32 @@ function updateLoginTexts() {
 // ============================================================
 async function startup() {
   try {
-    const { error } = await sb.from('settings').select('key').limit(1);
-    if (error) throw error;
-    document.getElementById('globalLoader').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loaderMsg').textContent = 'Connecting to database…';
+    const { data, error } = await sb.from('settings').select('key').limit(1);
+    if (error) { console.error('Supabase error:', error); throw error; }
+    showLogin();
+  } catch(e) {
+    console.error('Startup error:', e);
+    document.getElementById('loaderMsg').textContent = '⚠️ Connection failed: ' + (e.message || String(e));
+    const loader = document.getElementById('globalLoader');
+    // Remove old retry btn if exists
+    const old = loader.querySelector('.retry-btn');
+    if (old) old.remove();
+    const btn = document.createElement('button');
+    btn.className = 'retry-btn';
+    btn.textContent = 'Retry';
+    btn.style.cssText = 'margin-top:10px;padding:10px 28px;background:#e94560;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;';
+    btn.onclick = () => { btn.remove(); startup(); };
+    loader.appendChild(btn);
+  }
+}
+
+function showLogin() {
+  document.getElementById('globalLoader').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
   updateLoginTexts();
-  // Apply saved lang
   document.getElementById('lbtn-en').classList.toggle('active', lang==='en');
   document.getElementById('lbtn-de').classList.toggle('active', lang==='de');
-  } catch(e) {
-    document.getElementById('loaderMsg').textContent = lang==='de' ? '⚠️ Keine Verbindung. Internet prüfen.' : '⚠️ Cannot connect. Check internet.';
-  }
 }
 
 // ============================================================
