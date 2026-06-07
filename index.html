@@ -155,6 +155,12 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
 .admin-company{font-size:11px;color:var(--text2);}
 .admin-meta{font-size:11px;color:var(--text2);margin-top:2px;}
 
+
+/* LANG TOGGLE */
+.lang-toggle{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.08);border-radius:20px;padding:3px;margin-left:8px;}
+.lang-btn{padding:3px 10px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.5);transition:all .15s;font-family:"DM Sans",sans-serif;}
+.lang-btn.active{background:var(--accent);color:#fff;}
+
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px;}
@@ -202,7 +208,11 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafaf8;}
       <strong id="topbarName">—</strong>
       <span class="role-tag" id="topbarRole"></span>
     </div>
-    <button class="btn-signout" onclick="logout()">Sign Out</button>
+    <div class="lang-toggle">
+    <button class="lang-btn active" id="lbtn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="lbtn-de" onclick="setLang('de')">DE</button>
+  </div>
+  <button class="btn-signout" id="btnSignOut" onclick="logout()">Sign Out</button>
   </div>
   <div class="nav-tabs" id="navTabs"></div>
   <div class="content" id="appContent"></div>
@@ -287,6 +297,354 @@ let cache = { drivers:[], stations:[], tours:[], tourValues:{}, entries:[], admi
 let editingEntryId = null;
 let currentPage = '';
 
+
+// ============================================================
+// TRANSLATIONS
+// ============================================================
+let lang = localStorage.getItem('lang') || 'en';
+
+const T = {
+  en: {
+    // General
+    signOut: 'Sign Out',
+    cancel: 'Cancel',
+    save: 'Save',
+    delete: 'Delete',
+    edit: 'Edit',
+    add: 'Add',
+    clear: 'Clear',
+    refresh: '↻ Calculate',
+    exportExcel: '📊 Export Excel',
+    noData: '${t('noData')}',
+    loading: 'Connecting…',
+    areYouSure: 'Are you sure?',
+    // Login
+    loginSub: 'Driver Hours Management',
+    roleDriver: '🚛 Driver',
+    roleAdmin: '⚙️ Admin',
+    roleSuper: '🔑 Super Admin',
+    yourName: 'Your Name',
+    username: 'Username',
+    password: 'Password',
+    adminUsername: 'Admin Username',
+    adminPassword: 'Admin Password',
+    signIn: 'Sign In →',
+    superHint: 'Super Admin password: super2024',
+    enterName: 'Enter your full name',
+    enterUsername: 'Admin username',
+    enterPassword: 'Password',
+    // Nav
+    navEntries: '📋 My Entries',
+    navAllEntries: '📋 All Entries',
+    navHours: '⏱ Hours Report',
+    navTours: '🗺 Tours',
+    navStations: '📍 Stations',
+    navDrivers: '👥 Drivers',
+    navSettings: '🔐 Settings',
+    navAdmins: '⚙️ Admin Accounts',
+    // Pages
+    myEntries: 'My Entries',
+    myEntriesSub: 'Select your admin workspace, then add entries',
+    addEntry: '+ Add Entry',
+    allEntries: 'All Entries',
+    allEntriesSub: 'Manage all driver tour records',
+    hoursReport: 'Hours Report',
+    hoursReportSub: 'Total hours based on tour values per station',
+    toursManagement: 'Tours Management',
+    toursManagementSub: 'Set hour values per tour per station',
+    stations: 'Stations',
+    driverPool: 'Driver Pool',
+    driverPoolSub: 'Shared across all admin workspaces',
+    settings: '🔐 Settings',
+    adminAccounts: 'Admin Accounts',
+    // Filters
+    month: 'Month',
+    driver: 'Driver',
+    station: 'Station',
+    tour: 'Tour',
+    allDrivers: 'All Drivers',
+    allStations: 'All Stations',
+    allTours: 'All Tours',
+    // Table headers
+    thNum: '#',
+    thDate: 'Date',
+    thDriver: 'Driver',
+    thTour: 'Tour',
+    thHours: 'Hours',
+    thStation: 'Station',
+    thActions: 'Actions',
+    thRole: 'Role',
+    thCreated: 'Created',
+    // Entry modal
+    addEntryTitle: 'Add Entry',
+    editEntryTitle: 'Edit Entry',
+    driverName: 'Driver',
+    saveEntry: 'Save Entry',
+    // Tours
+    tourHourValues: '⏱ Tour Hour Values',
+    tourHourValuesSub: '${t('tourHourValuesSub')}',
+    tourTypes: '🗺 Tour Types',
+    newTourPlaceholder: '${t('newTourPlaceholder')}',
+    saveValues: '💾 Save Values',
+    hrsCycle: '${t('hrsCycle')}',
+    // Stations
+    newStationPlaceholder: '${t('newStationPlaceholder')}',
+    // Drivers
+    newDriverPlaceholder: '${t('newDriverPlaceholder')}',
+    // Settings
+    changePassword: '🔑 Change Password',
+    changeUsername: '👤 Change Username',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm New Password',
+    updatePassword: '🔒 Update Password',
+    updateUsername: '👤 Update Username',
+    newUsername: 'New Username',
+    confirmWithPass: 'Confirm with Password',
+    superSettings: '🔐 Super Admin Settings',
+    // Admin accounts
+    createAdmin: '+ Create Admin',
+    createAdminTitle: '➕ Create Admin Account',
+    editAdminTitle: '✏️ Edit Admin Account',
+    adminUsernameLabel: 'Username',
+    adminPasswordLabel: 'Password',
+    companyLabel: 'Company / Name',
+    createAccount: 'Create Account',
+    saveChanges: 'Save Changes',
+    newPassOptional: '(leave blank to keep current)',
+    // Reports
+    totalHours: 'Total Hours — All Drivers',
+    entries: 'entries',
+    drivers: 'drivers',
+    // Delete
+    deleteEntry: t('deleteEntry'),
+    deleteTour: 'Remove Tour',
+    deleteStation: 'Remove station',
+    deleteDriver: 'Remove driver',
+    deleteAdmin: 'Delete this admin account and ALL their data?',
+    // Workspace
+    selectWorkspace: '${t('selectWorkspace')}',
+    adminCompany: '${t('adminCompany')}',
+    selectWorkspacePlaceholder: '${t('selectWorkspacePlaceholder')}',
+    // Errors
+    fillFields: t('fillFields'),
+    incorrectPass: t('incorrectPass'),
+    incorrectUser: t('incorrectUser'),
+    userNotFound: t('userNotFound'),
+    enterNameErr: t('enterNameErr'),
+    enterCredentials: t('enterCredentials'),
+    minChars: t('minChars'),
+    passMismatch: t('passMismatch'),
+    currentPassWrong: t('currentPassWrong'),
+    usernameRequired: t('usernameRequired'),
+    passMin4: t('passMin4'),
+    enterNewUsername: t('enterNewUsername'),
+    // Success
+    savedOk: t('savedOk'),
+    passUpdated: t('passUpdated'),
+    usernameUpdated: t('usernameUpdated'),
+    adminCreated: t('adminCreated'),
+    tourValuesSaved: t('tourValuesSaved'),
+    updatedOk: t('updatedOk'),
+  },
+  de: {
+    // General
+    signOut: 'Abmelden',
+    cancel: 'Abbrechen',
+    save: 'Speichern',
+    delete: 'Löschen',
+    edit: 'Bearbeiten',
+    add: 'Hinzufügen',
+    clear: 'Zurücksetzen',
+    refresh: '↻ Berechnen',
+    exportExcel: '📊 Excel exportieren',
+    noData: 'Keine Einträge gefunden.',
+    loading: 'Verbinde…',
+    areYouSure: 'Sind Sie sicher?',
+    // Login
+    loginSub: 'Fahrer-Stunden-Verwaltung',
+    roleDriver: '🚛 Fahrer',
+    roleAdmin: '⚙️ Admin',
+    roleSuper: '🔑 Super Admin',
+    yourName: 'Ihr Name',
+    username: 'Benutzername',
+    password: 'Passwort',
+    adminUsername: 'Admin-Benutzername',
+    adminPassword: 'Admin-Passwort',
+    signIn: 'Anmelden →',
+    superHint: 'Super Admin Passwort: super2024',
+    enterName: 'Vollständigen Namen eingeben',
+    enterUsername: 'Admin-Benutzername',
+    enterPassword: 'Passwort',
+    // Nav
+    navEntries: '📋 Meine Einträge',
+    navAllEntries: '📋 Alle Einträge',
+    navHours: '⏱ Stundenauswertung',
+    navTours: '🗺 Touren',
+    navStations: '📍 Stationen',
+    navDrivers: '👥 Fahrer',
+    navSettings: '🔐 Einstellungen',
+    navAdmins: '⚙️ Admin-Konten',
+    // Pages
+    myEntries: 'Meine Einträge',
+    myEntriesSub: 'Workspace auswählen, dann Einträge hinzufügen',
+    addEntry: '+ Eintrag hinzufügen',
+    allEntries: 'Alle Einträge',
+    allEntriesSub: 'Alle Fahrer-Toureinträge verwalten',
+    hoursReport: 'Stundenauswertung',
+    hoursReportSub: 'Gesamtstunden basierend auf Tourwerten pro Station',
+    toursManagement: 'Tourverwaltung',
+    toursManagementSub: 'Stundenwerte pro Tour und Station festlegen',
+    stations: 'Stationen',
+    driverPool: 'Fahrerpool',
+    driverPoolSub: 'Gemeinsam für alle Admin-Workspaces',
+    settings: '🔐 Einstellungen',
+    adminAccounts: 'Admin-Konten',
+    // Filters
+    month: 'Monat',
+    driver: 'Fahrer',
+    station: 'Station',
+    tour: 'Tour',
+    allDrivers: 'Alle Fahrer',
+    allStations: 'Alle Stationen',
+    allTours: 'Alle Touren',
+    // Table headers
+    thNum: '#',
+    thDate: 'Datum',
+    thDriver: 'Fahrer',
+    thTour: 'Tour',
+    thHours: 'Stunden',
+    thStation: 'Station',
+    thActions: 'Aktionen',
+    thRole: 'Rolle',
+    thCreated: 'Erstellt',
+    // Entry modal
+    addEntryTitle: 'Eintrag hinzufügen',
+    editEntryTitle: 'Eintrag bearbeiten',
+    driverName: 'Fahrer',
+    saveEntry: 'Eintrag speichern',
+    // Tours
+    tourHourValues: '⏱ Tourstundenwerte',
+    tourHourValuesSub: 'Stunden pro Tour und Station bearbeiten, dann speichern.',
+    tourTypes: '🗺 Tourtypen',
+    newTourPlaceholder: 'Neue Tour z.B. F',
+    saveValues: '💾 Werte speichern',
+    hrsCycle: 'Std/Zyklus',
+    // Stations
+    newStationPlaceholder: 'Stationsname',
+    // Drivers
+    newDriverPlaceholder: 'Vollständiger Fahrername',
+    // Settings
+    changePassword: '🔑 Passwort ändern',
+    changeUsername: '👤 Benutzername ändern',
+    currentPassword: 'Aktuelles Passwort',
+    newPassword: 'Neues Passwort',
+    confirmPassword: 'Neues Passwort bestätigen',
+    updatePassword: '🔒 Passwort aktualisieren',
+    updateUsername: '👤 Benutzername aktualisieren',
+    newUsername: 'Neuer Benutzername',
+    confirmWithPass: 'Mit Passwort bestätigen',
+    superSettings: '🔐 Super Admin Einstellungen',
+    // Admin accounts
+    createAdmin: '+ Admin erstellen',
+    createAdminTitle: '➕ Admin-Konto erstellen',
+    editAdminTitle: '✏️ Admin-Konto bearbeiten',
+    adminUsernameLabel: 'Benutzername',
+    adminPasswordLabel: 'Passwort',
+    companyLabel: 'Unternehmen / Name',
+    createAccount: 'Konto erstellen',
+    saveChanges: 'Änderungen speichern',
+    newPassOptional: '(leer lassen zum Beibehalten)',
+    // Reports
+    totalHours: 'Gesamtstunden — Alle Fahrer',
+    entries: 'Einträge',
+    drivers: 'Fahrer',
+    // Delete
+    deleteEntry: 'Diesen Eintrag löschen?',
+    deleteTour: 'Tour entfernen',
+    deleteStation: 'Station entfernen',
+    deleteDriver: 'Fahrer entfernen',
+    deleteAdmin: 'Dieses Admin-Konto und ALLE zugehörigen Daten löschen?',
+    // Workspace
+    selectWorkspace: '🏢 Workspace auswählen',
+    adminCompany: 'Admin / Unternehmen',
+    selectWorkspacePlaceholder: '— Workspace auswählen —',
+    // Errors
+    fillFields: 'Alle Felder ausfüllen.',
+    incorrectPass: '✗ Falsches Passwort.',
+    incorrectUser: '✗ Falscher Benutzername.',
+    userNotFound: 'Benutzername nicht gefunden.',
+    enterNameErr: 'Namen eingeben.',
+    enterCredentials: 'Benutzername und Passwort eingeben.',
+    minChars: '✗ Mindestens 4 Zeichen.',
+    passMismatch: '✗ Passwörter stimmen nicht überein.',
+    currentPassWrong: '✗ Aktuelles Passwort falsch.',
+    usernameRequired: 'Benutzername erforderlich.',
+    passMin4: 'Passwort mindestens 4 Zeichen.',
+    enterNewUsername: '✗ Neuen Benutzernamen eingeben.',
+    // Success
+    savedOk: '✓ Gespeichert!',
+    passUpdated: '✓ Passwort aktualisiert!',
+    usernameUpdated: '✓ Benutzername aktualisiert!',
+    adminCreated: '✓ Admin-Konto erstellt!',
+    tourValuesSaved: '✓ Tourstundenwerte gespeichert!',
+    updatedOk: '✓ Aktualisiert!',
+  }
+};
+
+function t(key) { return T[lang][key] || T.en[key] || key; }
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.getElementById('lbtn-en').classList.toggle('active', l==='en');
+  document.getElementById('lbtn-de').classList.toggle('active', l==='de');
+  // Update static elements
+  updateStaticTexts();
+  // Re-render current page if logged in
+  if (session.role) {
+    buildNav();
+  } else {
+    updateLoginTexts();
+  }
+}
+
+function updateStaticTexts() {
+  // Topbar
+  const so = document.getElementById('btnSignOut');
+  if (so) so.textContent = t('signOut');
+  // Modals
+  updateLoginTexts();
+}
+
+function updateLoginTexts() {
+  const sub = document.querySelector('.login-sub');
+  if (sub) sub.textContent = t('loginSub');
+  const rl_d = document.getElementById('rl-driver');
+  if (rl_d) rl_d.textContent = t('roleDriver');
+  const rl_a = document.getElementById('rl-admin');
+  if (rl_a) rl_a.textContent = t('roleAdmin');
+  const rl_s = document.getElementById('rl-super');
+  if (rl_s) rl_s.textContent = t('roleSuper');
+  const nameInput = document.getElementById('loginDriverName');
+  if (nameInput) nameInput.placeholder = t('enterName');
+  const userInput = document.getElementById('loginUsername');
+  if (userInput) userInput.placeholder = t('enterUsername');
+  const passInput = document.getElementById('loginPass');
+  if (passInput) passInput.placeholder = t('enterPassword');
+  const hint = document.getElementById('loginHint');
+  if (hint) hint.innerHTML = t('superHint');
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn && !loginBtn.disabled) loginBtn.textContent = t('signIn');
+  // Labels
+  const nameLabel = document.querySelector('#driverNameGroup label');
+  if (nameLabel) nameLabel.textContent = t('yourName');
+  const userLabel = document.querySelector('#adminUserGroup label');
+  if (userLabel) userLabel.textContent = t('username');
+  const passLabel = document.querySelector('#passGroup label');
+  if (passLabel) passLabel.textContent = t('password');
+}
+
 // ============================================================
 // STARTUP
 // ============================================================
@@ -296,8 +654,12 @@ async function startup() {
     if (error) throw error;
     document.getElementById('globalLoader').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
+  updateLoginTexts();
+  // Apply saved lang
+  document.getElementById('lbtn-en').classList.toggle('active', lang==='en');
+  document.getElementById('lbtn-de').classList.toggle('active', lang==='de');
   } catch(e) {
-    document.getElementById('loaderMsg').textContent = '⚠️ Cannot connect. Check internet.';
+    document.getElementById('loaderMsg').textContent = lang==='de' ? '⚠️ Keine Verbindung. Internet prüfen.' : '⚠️ Cannot connect. Check internet.';
   }
 }
 
@@ -327,14 +689,14 @@ async function doLogin() {
   try {
     if (loginRole === 'driver') {
       const name = document.getElementById('loginDriverName').value.trim();
-      if (!name) { showLoginErr('Enter your name.'); return; }
+      if (!name) { showLoginErr(t('enterNameErr')); return; }
       session = { role:'driver', user:name, adminId:null };
       enterApp();
 
     } else if (loginRole === 'super') {
       const user = document.getElementById('loginUsername').value.trim();
       const pass = document.getElementById('loginPass').value;
-      if (!user || !pass) { showLoginErr('Enter username and password.'); return; }
+      if (!user || !pass) { showLoginErr(t('enterCredentials')); return; }
       const { data } = await sb.from('settings').select('value').eq('key','superadmin_password').single();
       const storedPass = data?.value || 'super2024';
       const { data: d2 } = await sb.from('settings').select('value').eq('key','superadmin_username').single();
@@ -348,9 +710,9 @@ async function doLogin() {
     } else {
       const user = document.getElementById('loginUsername').value.trim();
       const pass = document.getElementById('loginPass').value;
-      if (!user || !pass) { showLoginErr('Enter username and password.'); return; }
+      if (!user || !pass) { showLoginErr(t('enterCredentials')); return; }
       const { data, error } = await sb.from('admins').select('*').eq('username', user).single();
-      if (error || !data) { showLoginErr('Username not found.'); return; }
+      if (error || !data) { showLoginErr(t('userNotFound')); return; }
       if (data.password !== pass) { showLoginErr('Incorrect password.'); return; }
       session = { role:'admin', user:data.username, adminId:data.id, company:data.company };
       enterApp();
@@ -441,23 +803,23 @@ function buildNav() {
   const nav = document.getElementById('navTabs');
   if (session.role === 'driver') {
     nav.innerHTML = `
-      <div class="ntab active" onclick="navigate('entries')" id="nt-entries">📋 My Entries</div>
-      <div class="ntab" onclick="navigate('hours')" id="nt-hours">⏱ Hours Report</div>`;
+      <div class="ntab active" onclick="navigate('entries')" id="nt-entries">${t('navEntries')}</div>
+      <div class="ntab" onclick="navigate('hours')" id="nt-hours">${t('navHours')}</div>`;
     navigate('entries');
   } else if (session.role === 'admin') {
     nav.innerHTML = `
-      <div class="ntab active" onclick="navigate('entries')" id="nt-entries">📋 All Entries</div>
-      <div class="ntab" onclick="navigate('hours')" id="nt-hours">⏱ Hours Report</div>
-      <div class="ntab" onclick="navigate('tours')" id="nt-tours">🗺 Tours</div>
-      <div class="ntab" onclick="navigate('stations')" id="nt-stations">📍 Stations</div>
-      <div class="ntab" onclick="navigate('drivers')" id="nt-drivers">👥 Drivers</div>
-      <div class="ntab" onclick="navigate('settings')" id="nt-settings">🔐 Settings</div>`;
+      <div class="ntab active" onclick="navigate('entries')" id="nt-entries">${t('navAllEntries')}</div>
+      <div class="ntab" onclick="navigate('hours')" id="nt-hours">${t('navHours')}</div>
+      <div class="ntab" onclick="navigate('tours')" id="nt-tours">${t('navTours')}</div>
+      <div class="ntab" onclick="navigate('stations')" id="nt-stations">${t('navStations')}</div>
+      <div class="ntab" onclick="navigate('drivers')" id="nt-drivers">${t('navDrivers')}</div>
+      <div class="ntab" onclick="navigate('settings')" id="nt-settings">${t('navSettings')}</div>`;
     navigate('entries');
   } else {
     nav.innerHTML = `
-      <div class="ntab active" onclick="navigate('admins')" id="nt-admins">⚙️ Admin Accounts</div>
-      <div class="ntab" onclick="navigate('drivers')" id="nt-drivers">👥 Driver Pool</div>
-      <div class="ntab" onclick="navigate('settings')" id="nt-settings">🔐 Settings</div>`;
+      <div class="ntab active" onclick="navigate('admins')" id="nt-admins">${t('navAdmins')}</div>
+      <div class="ntab" onclick="navigate('drivers')" id="nt-drivers">${t('navDrivers')}</div>
+      <div class="ntab" onclick="navigate('settings')" id="nt-settings">${t('navSettings')}</div>`;
     navigate('admins');
   }
 }
@@ -491,11 +853,11 @@ async function renderDriverEntries() {
       <div><div class="ph-title">My Tour Entries</div><div class="ph-sub">Select your admin workspace, then add entries</div></div>
     </div>
     <div class="card">
-      <div class="card-title">🏢 Select Workspace</div>
+      <div class="card-title">${t('selectWorkspace')}</div>
       <div class="fg" style="max-width:320px">
-        <label>Admin / Company</label>
+        <label>${t('adminCompany')}</label>
         <select id="driverWorkspace" onchange="loadDriverWorkspace()">
-          <option value="">— Select workspace —</option>
+          <option value="">${t('selectWorkspacePlaceholder')}</option>
           ${(admins||[]).map(a=>`<option value="${a.id}">${a.username}${a.company?' — '+a.company:''}</option>`).join('')}
         </select>
       </div>
@@ -527,20 +889,20 @@ async function loadDriverWorkspace() {
     <div class="card">
       <div class="card-title" style="justify-content:space-between">
         📋 My Entries
-        <button class="btn btn-primary btn-sm" onclick="openDriverEntryModal('${adminId}')">+ Add Entry</button>
+        <button class="btn btn-primary btn-sm" onclick="openDriverEntryModal('${adminId}')">${t('addEntry')}</button>
       </div>
       <div class="filter-bar">
-        <div class="fg"><label>Month</label><input type="month" id="dFilterMonth" onchange="refreshDriverTable('${adminId}')"></div>
+        <div class="fg"><label>${t('month')}</label><input type="month" id="dFilterMonth" onchange="refreshDriverTable('${adminId}')"></div>
         <div class="fg"><label>Station</label>
           <select id="dFilterStation" onchange="refreshDriverTable('${adminId}')">
-            <option value="">All Stations</option>
+            <option value="">${t('allStations')}</option>
             ${wStations.map(s=>`<option>${s}</option>`).join('')}
           </select>
         </div>
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>#</th><th>Date</th><th>Tour</th><th>Hours</th><th>Station</th><th>Actions</th></tr></thead>
+          <thead><tr><th>${t('thNum')}</th><th>${t('thDate')}</th><th>${t('thTour')}</th><th>${t('thHours')}</th><th>${t('thStation')}</th><th>${t('thActions')}</th></tr></thead>
           <tbody id="driverEntryBody"></tbody>
         </table>
       </div>
@@ -561,7 +923,7 @@ function renderDriverEntryTable(entries, values) {
     if (station && e.station!==station) return false;
     return true;
   });
-  if (!list.length) { tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text2)">No entries yet.</td></tr>`; return; }
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text2)">${t('noData')}</td></tr>`; return; }
   tbody.innerHTML = list.map((e,i)=>`
     <tr>
       <td style="color:var(--text2)">${i+1}</td>
@@ -599,7 +961,7 @@ function openDriverEntryModal(adminId, entryId) {
 }
 
 async function confirmDriverDelete(entryId) {
-  document.getElementById('delMsg').textContent = 'Delete this entry?';
+  document.getElementById('delMsg').textContent = t('deleteEntry');
   document.getElementById('delConfirmBtn').onclick = async () => {
     await sb.from('entries').delete().eq('id', entryId);
     window._wData.wEntries = window._wData.wEntries.filter(e=>e.id!==entryId);
@@ -616,32 +978,32 @@ function renderAdminEntries() {
   const c = document.getElementById('appContent');
   c.innerHTML = `
     <div class="ph">
-      <div><div class="ph-title">All Entries</div><div class="ph-sub">Manage all driver tour records</div></div>
+      <div><div class="ph-title">${t('allEntries')}</div><div class="ph-sub">${t('allEntriesSub')}</div></div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button>
-        <button class="btn btn-primary" onclick="openAdminEntryModal()">+ Add Entry</button>
+        <button class="btn btn-green" onclick="exportExcel()">${t('exportExcel')}</button>
+        <button class="btn btn-primary" onclick="openAdminEntryModal()">${t('addEntry')}</button>
       </div>
     </div>
     <div class="card">
       <div class="filter-bar">
-        <div class="fg"><label>Month</label><input type="month" id="filterMonth" onchange="refreshAdminEntries()"></div>
-        <div class="fg"><label>Driver</label>
+        <div class="fg"><label>${t('month')}</label><input type="month" id="filterMonth" onchange="refreshAdminEntries()"></div>
+        <div class="fg"><label>${t('driver')}</label>
           <select id="filterDriver" onchange="refreshAdminEntries()">
-            <option value="">All Drivers</option>
+            <option value="">${t('allDrivers')}</option>
             ${cache.drivers.map(d=>`<option>${d}</option>`).join('')}
           </select>
         </div>
-        <div class="fg"><label>Station</label>
+        <div class="fg"><label>${t('station')}</label>
           <select id="filterStation" onchange="refreshAdminEntries()">
-            <option value="">All Stations</option>
+            <option value="">${t('allStations')}</option>
             ${cache.stations.map(s=>`<option>${s}</option>`).join('')}
           </select>
         </div>
-        <button class="btn btn-ghost btn-sm" style="align-self:flex-end" onclick="clearAdminFilters()">Clear</button>
+        <button class="btn btn-ghost btn-sm" style="align-self:flex-end" onclick="clearAdminFilters()">${t('clear')}</button>
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>#</th><th>Date</th><th>Driver</th><th>Tour</th><th>Hours</th><th>Station</th><th>Actions</th></tr></thead>
+          <thead><tr><th>${t('thNum')}</th><th>${t('thDate')}</th><th>${t('thDriver')}</th><th>${t('thTour')}</th><th>${t('thHours')}</th><th>${t('thStation')}</th><th>${t('thActions')}</th></tr></thead>
           <tbody id="adminEntryBody"></tbody>
         </table>
       </div>
@@ -661,7 +1023,7 @@ function refreshAdminEntries() {
     if (station && e.station!==station) return false;
     return true;
   });
-  if (!list.length) { tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2)">No entries found.</td></tr>`; return; }
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2)">${t('noData')}</td></tr>`; return; }
   tbody.innerHTML = list.map((e,i)=>`
     <tr>
       <td style="color:var(--text2)">${i+1}</td>
@@ -706,7 +1068,7 @@ async function saveEntry() {
   const tour    = document.getElementById('eTour').value;
   const station = document.getElementById('eStation').value;
   const adminId = window._entryAdminId || session.adminId;
-  if (!driver||!date||!tour||!station) { showAlert('entryAlert','Fill in all fields.','red'); return; }
+  if (!driver||!date||!tour||!station) { showAlert('entryAlert',t('fillFields'),'red'); return; }
   const btn = document.getElementById('entrySaveBtn');
   btn.disabled=true; btn.textContent='⏳ Saving…';
   try {
@@ -743,21 +1105,21 @@ function renderHoursReport() {
   const isAdmin = session.role==='admin';
   c.innerHTML = `
     <div class="ph">
-      <div><div class="ph-title">Hours Report</div><div class="ph-sub">Total hours based on tour values per station</div></div>
-      ${isAdmin?`<button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button>`:''}
+      <div><div class="ph-title">${t('hoursReport')}</div><div class="ph-sub">${t('hoursReportSub')}</div></div>
+      ${isAdmin?`<button class="btn btn-green" onclick="exportExcel()">${t('exportExcel')}</button>`:''}
     </div>
     <div class="card">
       <div class="filter-bar">
-        <div class="fg"><label>Month</label><input type="month" id="rMonth" onchange="calcReport()"></div>
+        <div class="fg"><label>${t('month')}</label><input type="month" id="rMonth" onchange="calcReport()"></div>
         ${isAdmin?`<div class="fg"><label>Driver</label>
           <select id="rDriver" onchange="calcReport()">
-            <option value="">All Drivers</option>
+            <option value="">${t('allDrivers')}</option>
             ${cache.drivers.map(d=>`<option>${d}</option>`).join('')}
           </select>
         </div>`:''}
         ${isAdmin?`<div class="fg"><label>Station</label>
           <select id="rStation" onchange="calcReport()">
-            <option value="">All Stations</option>
+            <option value="">${t('allStations')}</option>
             ${cache.stations.map(s=>`<option>${s}</option>`).join('')}
           </select>
         </div>`:''}
@@ -846,7 +1208,7 @@ function calcReport() {
 
   if (isAdmin) html+=`<div class="month-total-box">
     <div><div class="mt-label">Total Hours — All Drivers</div><div class="mt-val">${totalAll}h</div><div class="mt-sub">${driverList.length} drivers · ${list.length} entries · ${month||'All time'}</div></div>
-    <div style="margin-left:auto"><button class="btn btn-green" onclick="exportExcel()">📊 Export Excel</button></div>
+    <div style="margin-left:auto"><button class="btn btn-green" onclick="exportExcel()">${t('exportExcel')}</button></div>
   </div>`;
   out.innerHTML=html;
 }
@@ -859,19 +1221,19 @@ function renderToursPage() {
   c.innerHTML=`
     <div class="ph"><div><div class="ph-title">Tours Management</div><div class="ph-sub">Set hour values per tour per station</div></div></div>
     <div class="card">
-      <div class="card-title">⏱ Tour Hour Values</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Edit hours per tour per station, then save.</p>
+      <div class="card-title">${t('tourHourValues')}</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">${t('tourHourValuesSub')}</p>
       <div id="tourEditor"></div>
       <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
-        <button class="btn btn-primary" onclick="saveTourValues()">💾 Save Values</button>
+        <button class="btn btn-primary" onclick="saveTourValues()">${t('saveValues')}</button>
         <div class="alert alert-green" id="tvAlert" style="margin-bottom:0"></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">🗺 Tour Types</div>
+      <div class="card-title">${t('tourTypes')}</div>
       <div class="list-items" id="tourList"></div>
       <div class="add-row">
-        <input id="newTourInput" placeholder="New tour e.g. F" maxlength="5" onkeydown="if(event.key==='Enter')addTour()">
+        <input id="newTourInput" placeholder="${t('newTourPlaceholder')}" maxlength="5" onkeydown="if(event.key==='Enter')addTour()">
         <button class="btn btn-primary" onclick="addTour()">+ Add</button>
       </div>
     </div>`;
@@ -881,7 +1243,7 @@ function renderToursPage() {
 function renderTourEditor() {
   const el=document.getElementById('tourEditor'); if(!el) return;
   if(!cache.stations.length||!cache.tours.length){ el.innerHTML=`<p style="color:var(--text2);font-size:13px">Add stations and tours first.</p>`; return; }
-  let html=`<div class="tbl-wrap"><table><thead><tr><th>Tour</th>${cache.stations.map(s=>`<th style="text-align:center">${s}<br><span style="font-size:9px;font-weight:400;opacity:.6">hrs/cycle</span></th>`).join('')}</tr></thead><tbody>`;
+  let html=`<div class="tbl-wrap"><table><thead><tr><th>Tour</th>${cache.stations.map(s=>`<th style="text-align:center">${s}<br><span style="font-size:9px;font-weight:400;opacity:.6">${t('hrsCycle')}</span></th>`).join('')}</tr></thead><tbody>`;
   cache.tours.forEach(t=>{
     html+=`<tr><td><span class="pill ${getPillClass(t,cache.tours)}" style="font-size:13px;padding:4px 12px">Tour ${t}</span></td>
       ${cache.stations.map(s=>`<td style="text-align:center"><input type="number" min="0" step="0.5" value="${cache.tourValues[t]?.[s]??0}" id="tv_${t}_${s.replace(/\s/g,'_')}" style="width:80px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;font-weight:700;text-align:center;font-family:'DM Sans';outline:none;color:var(--text)"></td>`).join('')}
@@ -899,7 +1261,7 @@ async function saveTourValues() {
     cache.tours.forEach(t=>{ cache.stations.forEach(s=>{ const el=document.getElementById('tv_'+t+'_'+s.replace(/\s/g,'_')); const val=parseFloat(el?.value)||0; if(!cache.tourValues[t]) cache.tourValues[t]={}; cache.tourValues[t][s]=val; upserts.push({admin_id:session.adminId,tour_name:t,station_name:s,hours:val}); }); });
     const { error }=await sb.from('tour_values').upsert(upserts,{onConflict:'admin_id,tour_name,station_name'});
     if(error) throw error;
-    showAlert('tvAlert','✓ Saved!','green');
+    showAlert('tvAlert',t('savedOk'),'green');
   } catch(e){ showAlert('tvAlert','✗ '+e.message,'red'); }
   btn.disabled=false; btn.textContent='💾 Save Values';
 }
@@ -931,12 +1293,12 @@ async function addTour() {
 function renderStationsPage() {
   const c=document.getElementById('appContent');
   c.innerHTML=`
-    <div class="ph"><div><div class="ph-title">Stations</div></div></div>
+    <div class="ph"><div><div class="ph-title">${t('stations')}</div></div></div>
     <div class="card">
       <div class="card-title">📍 Stations</div>
       <div class="list-items" id="stationList"></div>
       <div class="add-row">
-        <input id="newStationInput" placeholder="Station name" onkeydown="if(event.key==='Enter')addStation()">
+        <input id="newStationInput" placeholder="${t('newStationPlaceholder')}" onkeydown="if(event.key==='Enter')addStation()">
         <button class="btn btn-primary" onclick="addStation()">+ Add</button>
       </div>
     </div>`;
@@ -971,7 +1333,7 @@ function renderAdminDrivers() {
     <div class="card">
       <div class="list-items" id="driverList"></div>
       <div class="add-row">
-        <input id="newDriverInput" placeholder="Full driver name" onkeydown="if(event.key==='Enter')addDriver()">
+        <input id="newDriverInput" placeholder="${t('newDriverPlaceholder')}" onkeydown="if(event.key==='Enter')addDriver()">
         <button class="btn btn-primary" onclick="addDriver()">+ Add</button>
       </div>
     </div>`;
@@ -1002,13 +1364,13 @@ function renderAdminSettings() {
   c.innerHTML=`
     <div class="ph"><div><div class="ph-title">🔐 Settings</div></div></div>
     <div class="card" style="max-width:460px">
-      <div class="card-title">🔑 Change Password</div>
-      <div class="fg"><label>Current Password</label><input type="password" id="cpCurrent" placeholder="Current password"></div>
-      <div class="fg"><label>New Password</label><input type="password" id="cpNew" placeholder="Min 4 characters"></div>
-      <div class="fg"><label>Confirm New Password</label><input type="password" id="cpConfirm" placeholder="Repeat new password" onkeydown="if(event.key==='Enter')changeAdminPassword()"></div>
+      <div class="card-title">${t('changePassword')}</div>
+      <div class="fg"><label>${t('currentPassword')}</label><input type="password" id="cpCurrent" placeholder="Current password"></div>
+      <div class="fg"><label>${t('newPassword')}</label><input type="password" id="cpNew" placeholder="Min 4 characters"></div>
+      <div class="fg"><label>${t('confirmPassword')}</label><input type="password" id="cpConfirm" placeholder="Repeat new password" onkeydown="if(event.key==='Enter')changeAdminPassword()"></div>
       <div class="alert alert-green" id="cpOk"></div>
       <div class="alert alert-red" id="cpErr"></div>
-      <button class="btn btn-primary" id="cpBtn" onclick="changeAdminPassword()" style="width:100%;justify-content:center">🔒 Update Password</button>
+      <button class="btn btn-primary" id="cpBtn" onclick="changeAdminPassword()" style="width:100%;justify-content:center">${t('updatePassword')}</button>
     </div>`;
 }
 
@@ -1017,13 +1379,13 @@ async function changeAdminPassword() {
   const newPass=document.getElementById('cpNew').value;
   const confirm=document.getElementById('cpConfirm').value;
   const { data }=await sb.from('admins').select('password').eq('id',session.adminId).single();
-  if(current!==data?.password){ showAlert('cpErr','✗ Current password incorrect.','red'); return; }
-  if(newPass.length<4){ showAlert('cpErr','✗ Min 4 characters.','red'); return; }
-  if(newPass!==confirm){ showAlert('cpErr','✗ Passwords do not match.','red'); return; }
+  if(current!==data?.password){ showAlert('cpErr',t('currentPassWrong'),'red'); return; }
+  if(newPass.length<4){ showAlert('cpErr',t('minChars'),'red'); return; }
+  if(newPass!==confirm){ showAlert('cpErr',t('passMismatch'),'red'); return; }
   const btn=document.getElementById('cpBtn'); btn.disabled=true; btn.textContent='⏳ Saving…';
   const { error }=await sb.from('admins').update({password:newPass}).eq('id',session.adminId);
   if(error){ showAlert('cpErr','✗ '+error.message,'red'); }
-  else { document.getElementById('cpCurrent').value=''; document.getElementById('cpNew').value=''; document.getElementById('cpConfirm').value=''; showAlert('cpOk','✓ Password updated!','green'); }
+  else { document.getElementById('cpCurrent').value=''; document.getElementById('cpNew').value=''; document.getElementById('cpConfirm').value=''; showAlert('cpOk',t('passUpdated'),'green'); }
   btn.disabled=false; btn.textContent='🔒 Update Password';
 }
 
@@ -1034,8 +1396,8 @@ function renderSuperAdmins() {
   const c=document.getElementById('appContent');
   c.innerHTML=`
     <div class="ph">
-      <div><div class="ph-title">Admin Accounts</div><div class="ph-sub">${cache.admins.length} admin accounts</div></div>
-      <button class="btn btn-blue" onclick="document.getElementById('createAdminModal').classList.add('open')">+ Create Admin</button>
+      <div><div class="ph-title">${t('adminAccounts')}</div><div class="ph-sub">${cache.admins.length} admin accounts</div></div>
+      <button class="btn btn-blue" onclick="document.getElementById('createAdminModal').classList.add('open')">${t('createAdmin')}</button>
     </div>
     <div id="adminsList"></div>`;
   renderAdminsList();
@@ -1064,13 +1426,13 @@ async function createAdmin() {
   const password=document.getElementById('caPassword').value;
   const company=document.getElementById('caCompany').value.trim();
   if(!username||!password){ showAlert('caErr','Fill in username and password.','red'); return; }
-  if(password.length<4){ showAlert('caErr','Password min 4 characters.','red'); return; }
+  if(password.length<4){ showAlert('caErr',t('passMin4'),'red'); return; }
   const btn=document.getElementById('caBtn'); btn.disabled=true; btn.textContent='⏳ Creating…';
   const { data, error }=await sb.from('admins').insert({username,password,company}).select().single();
   if(error){ showAlert('caErr','✗ '+error.message,'red'); btn.disabled=false; btn.textContent='Create Account'; return; }
   cache.admins.push(data);
   document.getElementById('caUsername').value=''; document.getElementById('caPassword').value=''; document.getElementById('caCompany').value='';
-  showAlert('caOk','✓ Admin account created!','green');
+  showAlert('caOk',t('adminCreated'),'green');
   btn.disabled=false; btn.textContent='Create Account';
   renderAdminsList();
 }
@@ -1090,7 +1452,7 @@ async function updateAdmin() {
   const username=document.getElementById('eaUsername').value.trim();
   const password=document.getElementById('eaPassword').value;
   const company=document.getElementById('eaCompany').value.trim();
-  if(!username){ showAlert('eaErr','Username required.','red'); return; }
+  if(!username){ showAlert('eaErr',t('usernameRequired'),'red'); return; }
   const update={username,company};
   if(password){ if(password.length<4){ showAlert('eaErr','Password min 4 chars.','red'); return; } update.password=password; }
   const btn=document.getElementById('eaBtn'); btn.disabled=true; btn.textContent='⏳ Saving…';
@@ -1098,7 +1460,7 @@ async function updateAdmin() {
   if(error){ showAlert('eaErr','✗ '+error.message,'red'); btn.disabled=false; btn.textContent='Save Changes'; return; }
   const idx=cache.admins.findIndex(a=>a.id===id);
   if(idx>=0) cache.admins[idx]={...cache.admins[idx],...update};
-  showAlert('eaOk','✓ Updated!','green');
+  showAlert('eaOk',t('updatedOk'),'green');
   btn.disabled=false; btn.textContent='Save Changes';
   renderAdminsList();
 }
@@ -1109,11 +1471,11 @@ async function updateAdmin() {
 function renderSuperDrivers() {
   const c=document.getElementById('appContent');
   c.innerHTML=`
-    <div class="ph"><div><div class="ph-title">Driver Pool</div><div class="ph-sub">Shared across all admin workspaces</div></div></div>
+    <div class="ph"><div><div class="ph-title">${t('driverPool')}</div><div class="ph-sub">${t('driverPoolSub')}</div></div></div>
     <div class="card">
       <div class="list-items" id="driverList"></div>
       <div class="add-row">
-        <input id="newDriverInput" placeholder="Full driver name" onkeydown="if(event.key==='Enter')addDriver()">
+        <input id="newDriverInput" placeholder="${t('newDriverPlaceholder')}" onkeydown="if(event.key==='Enter')addDriver()">
         <button class="btn btn-blue" onclick="addDriver()">+ Add</button>
       </div>
     </div>`;
@@ -1126,23 +1488,23 @@ function renderSuperDrivers() {
 function renderSuperSettings() {
   const c=document.getElementById('appContent');
   c.innerHTML=`
-    <div class="ph"><div><div class="ph-title">🔐 Super Admin Settings</div></div></div>
+    <div class="ph"><div><div class="ph-title">${t('superSettings')}</div></div></div>
     <div class="card" style="max-width:460px">
-      <div class="card-title">👤 Change Super Admin Username</div>
-      <div class="fg"><label>New Username</label><input type="text" id="suNew" placeholder="New username"></div>
-      <div class="fg"><label>Confirm with Password</label><input type="password" id="suPass" placeholder="Current password"></div>
+      <div class="card-title">${t('changeUsername')}</div>
+      <div class="fg"><label>${t('newUsername')}</label><input type="text" id="suNew" placeholder="New username"></div>
+      <div class="fg"><label>${t('confirmWithPass')}</label><input type="password" id="suPass" placeholder="Current password"></div>
       <div class="alert alert-green" id="suOk"></div>
       <div class="alert alert-red" id="suErr"></div>
-      <button class="btn btn-blue" onclick="changeSuperUsername()" style="width:100%;justify-content:center">👤 Update Username</button>
+      <button class="btn btn-blue" onclick="changeSuperUsername()" style="width:100%;justify-content:center">${t('updateUsername')}</button>
     </div>
     <div class="card" style="max-width:460px;margin-top:0">
-      <div class="card-title">🔑 Change Password</div>
-      <div class="fg"><label>Current Password</label><input type="password" id="spCurrent" placeholder="Current password"></div>
-      <div class="fg"><label>New Password</label><input type="password" id="spNew" placeholder="Min 4 characters"></div>
+      <div class="card-title">${t('changePassword')}</div>
+      <div class="fg"><label>${t('currentPassword')}</label><input type="password" id="spCurrent" placeholder="Current password"></div>
+      <div class="fg"><label>${t('newPassword')}</label><input type="password" id="spNew" placeholder="Min 4 characters"></div>
       <div class="fg"><label>Confirm</label><input type="password" id="spConfirm" placeholder="Repeat" onkeydown="if(event.key==='Enter')changeSuperPassword()"></div>
       <div class="alert alert-green" id="spOk"></div>
       <div class="alert alert-red" id="spErr"></div>
-      <button class="btn btn-blue" onclick="changeSuperPassword()" style="width:100%;justify-content:center">🔒 Update Password</button>
+      <button class="btn btn-blue" onclick="changeSuperPassword()" style="width:100%;justify-content:center">${t('updatePassword')}</button>
     </div>`;
 }
 
@@ -1150,12 +1512,12 @@ async function changeSuperUsername() {
   const newUser=document.getElementById('suNew').value.trim();
   const pass=document.getElementById('suPass').value;
   const { data }=await sb.from('settings').select('value').eq('key','superadmin_password').single();
-  if(pass!==data?.value){ showAlert('suErr','✗ Incorrect password.','red'); return; }
-  if(!newUser){ showAlert('suErr','✗ Enter new username.','red'); return; }
+  if(pass!==data?.value){ showAlert('suErr',t('incorrectPass'),'red'); return; }
+  if(!newUser){ showAlert('suErr',t('enterNewUsername'),'red'); return; }
   await sb.from('settings').upsert({key:'superadmin_username',value:newUser},{onConflict:'key'});
   session.user=newUser; document.getElementById('topbarName').textContent=newUser;
   document.getElementById('suNew').value=''; document.getElementById('suPass').value='';
-  showAlert('suOk','✓ Username updated!','green');
+  showAlert('suOk',t('usernameUpdated'),'green');
 }
 
 async function changeSuperPassword() {
@@ -1163,19 +1525,19 @@ async function changeSuperPassword() {
   const newPass=document.getElementById('spNew').value;
   const confirm=document.getElementById('spConfirm').value;
   const { data }=await sb.from('settings').select('value').eq('key','superadmin_password').single();
-  if(current!==data?.value){ showAlert('spErr','✗ Current password incorrect.','red'); return; }
-  if(newPass.length<4){ showAlert('spErr','✗ Min 4 characters.','red'); return; }
-  if(newPass!==confirm){ showAlert('spErr','✗ Passwords do not match.','red'); return; }
+  if(current!==data?.value){ showAlert('spErr',t('currentPassWrong'),'red'); return; }
+  if(newPass.length<4){ showAlert('spErr',t('minChars'),'red'); return; }
+  if(newPass!==confirm){ showAlert('spErr',t('passMismatch'),'red'); return; }
   await sb.from('settings').upsert({key:'superadmin_password',value:newPass},{onConflict:'key'});
   document.getElementById('spCurrent').value=''; document.getElementById('spNew').value=''; document.getElementById('spConfirm').value='';
-  showAlert('spOk','✓ Password updated!','green');
+  showAlert('spOk',t('passUpdated'),'green');
 }
 
 // ============================================================
 // DELETE
 // ============================================================
 function confirmDelete(id, type) {
-  const msgs={entry:'Delete this entry?',tour:`Remove Tour "${id}"?`,station:`Remove station "${id}"?`,driver:`Remove driver "${id}"?`,admin_account:'Delete this admin account and ALL their data?'};
+  const msgs={entry:t('deleteEntry'),tour:`Remove Tour "${id}"?`,station:`Remove station "${id}"?`,driver:`Remove driver "${id}"?`,admin_account:'Delete this admin account and ALL their data?'};
   document.getElementById('delMsg').textContent=msgs[type]||'Are you sure?';
   document.getElementById('delConfirmBtn').onclick=()=>{ doDelete(id,type); closeModal('delModal'); };
   document.getElementById('delModal').classList.add('open');
